@@ -137,7 +137,12 @@ bool parseFaceTemplate(const uint8_t* data, size_t size, FaceTemplate& out, std:
             if (i >= nv) r.ok = false;
         }
         shape.offset.resize(count);
-        for (auto& o : shape.offset) o = step * glm::vec3(float(r.get<int16_t>()), float(r.get<int16_t>()), float(r.get<int16_t>()));
+        for (auto& o : shape.offset) {
+            // One read per statement: the order function arguments are evaluated in is unspecified (x86 compilers
+            // go right to left), which swapped x and z there.
+            const float x = r.get<int16_t>(), y = r.get<int16_t>(), z = r.get<int16_t>();
+            o = step * glm::vec3(x, y, z);
+        }
         t.shapes.push_back(std::move(shape));
     }
     if (!r.ok) {
