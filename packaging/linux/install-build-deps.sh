@@ -12,7 +12,8 @@ elif command -v dnf >/dev/null 2>&1; then
   dnf -y install dnf-plugins-core
   # Extra development repositories: "crb" on EL9+, "powertools" on EL8.
   dnf config-manager --set-enabled crb 2>/dev/null || dnf config-manager --set-enabled powertools 2>/dev/null || true
-  dnf -y install gcc-c++ cmake make pkgconf-pkg-config git file rpm-build \
+  # --nobest: a half-synced mirror (appstream gcc-c++ newer than baseos libstdc++) must not stop the build.
+  dnf -y install --nobest gcc-c++ cmake make pkgconf-pkg-config git file rpm-build \
     libX11-devel libXext-devel libXrandr-devel libXcursor-devel libXfixes-devel libXi-devel libXScrnSaver-devel \
     libXtst-devel libxkbcommon-devel wayland-devel wayland-protocols-devel mesa-libEGL-devel mesa-libGL-devel \
     dbus-devel systemd-devel libcurl-devel

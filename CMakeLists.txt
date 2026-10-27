@@ -490,7 +490,7 @@ if(SCULPTFORGE_BUILD_TESTS)
   # The phone link's relay (services/link-worker, a Cloudflare Worker) under plain Node, when Node 20+ is installed.
   find_program(SCULPTFORGE_NODE node)
   if(SCULPTFORGE_NODE)
-    add_test(NAME link_worker COMMAND ${SCULPTFORGE_NODE} --test test/
+    add_test(NAME link_worker COMMAND ${SCULPTFORGE_NODE} --test test/relay.test.mjs
              WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/services/link-worker)
   endif()
 
