@@ -6,6 +6,10 @@ All notable changes to SculptForge are listed here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- Easier reading: the User Guide (and its What's New chapter) and the update banner use 17 px text instead of
+  the 15 px interface font, with larger headings.
+
 ### Fixed
 - Capture from phone tells you what to do when the phone can't open the page: Android Chrome can refuse every
   home-network address ("This site can't be reached", ERR_TOO_MANY_RETRIES), so use Firefox on the phone; and Linux

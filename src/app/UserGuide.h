@@ -23,6 +23,10 @@ class UserGuide {
 public:
     // Heading fonts (Inter SemiBold), added while the font atlas is built.
     void addFonts(float scale);
+    // The reading fonts (Inter 17 px, regular and SemiBold), also used by the update banner; null before addFonts.
+    static constexpr float kReadingSize = 17.0f;
+    ImFont* bodyFont() const { return body_; }
+    ImFont* bodyBoldFont() const { return bodyBold_; }
     // Opens the window at TARGET ("masking.md#mask-by-cavity", "masking.md", "" = where it was).
     void open(const std::string& target = "");
     void toggle();
@@ -82,6 +86,7 @@ private:
     int layoutPage_ = -2;
     std::map<std::string, Texture> textures_;
     ImFont* h1_ = nullptr, *h2_ = nullptr, *h3_ = nullptr;
+    ImFont* body_ = nullptr, *bodyBold_ = nullptr;
     int linkCounter_ = 0;
 };
 

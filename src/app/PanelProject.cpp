@@ -538,10 +538,15 @@ void App::drawUpdateBanner() {
                                    ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
                                    ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
     if (ImGui::Begin("##update_banner", nullptr, flags)) {
+        // Reading size (the guide's 17 px fonts), so the highlights are easy to read over the canvas.
+        if (ImFont* title = guide_.bodyBoldFont()) ImGui::PushFont(title);
         ImGui::Text("SculptForge %s is available", u.version.c_str());
+        if (guide_.bodyBoldFont()) ImGui::PopFont();
+        if (ImFont* body = guide_.bodyFont()) ImGui::PushFont(body);
         ImGui::SameLine();
         ImGui::TextDisabled("(you have %s)", SCULPTFORGE_VERSION);
         for (const auto& h : u.highlights) ImGui::BulletText("%s", h.c_str());
+        if (guide_.bodyFont()) ImGui::PopFont();
         ImGui::Spacing();
         bool close = false;
         if (ImGui::Button("What's new")) SDL_OpenURL(u.notesUrl.c_str());

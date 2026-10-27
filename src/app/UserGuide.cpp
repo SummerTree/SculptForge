@@ -25,6 +25,8 @@ namespace sf {
 namespace assets {
 extern const unsigned char fontSemiBold[];
 extern const unsigned long long fontSemiBold_size;
+extern const unsigned char fontRegular[];
+extern const unsigned long long fontRegular_size;
 } // namespace assets
 
 namespace guide_data {
@@ -327,13 +329,18 @@ void UserGuide::addFonts(float scale) {
     ImFontConfig cfg;
     cfg.FontDataOwnedByAtlas = false;
     cfg.OversampleH = 2;
-    auto add = [&](float size) {
-        return io.Fonts->AddFontFromMemoryTTF(const_cast<unsigned char*>(assets::fontSemiBold), int(assets::fontSemiBold_size),
-                                              size * scale, &cfg);
+    auto add = [&](float size, bool bold = true) {
+        return bold ? io.Fonts->AddFontFromMemoryTTF(const_cast<unsigned char*>(assets::fontSemiBold),
+                                                     int(assets::fontSemiBold_size), size * scale, &cfg)
+                    : io.Fonts->AddFontFromMemoryTTF(const_cast<unsigned char*>(assets::fontRegular),
+                                                     int(assets::fontRegular_size), size * scale, &cfg);
     };
-    h1_ = add(27.0f);
-    h2_ = add(20.5f);
-    h3_ = add(16.5f);
+    // Reading text a step above the 15 px UI font (the guide, What's New, the update banner).
+    body_ = add(kReadingSize, false);
+    bodyBold_ = add(kReadingSize);
+    h1_ = add(30.0f);
+    h2_ = add(23.0f);
+    h3_ = add(19.0f);
 }
 
 bool UserGuide::ensureLoaded() {
@@ -738,10 +745,10 @@ void UserGuide::drawSearchResults(App& app) {
 float UserGuide::drawBlock(App& app, const Block& b, int index, ImVec2 o, float width, bool draw) {
     const float s = app.uiScale_;
     ImDrawList* dl = draw ? ImGui::GetWindowDrawList() : nullptr;
-    ImFont* regular = ImGui::GetFont();
+    ImFont* regular = body_ ? body_ : ImGui::GetFont();
     FlowStyle st;
     st.regular = regular;
-    st.bold = app.boldFont() ? app.boldFont() : regular;
+    st.bold = bodyBold_ ? bodyBold_ : app.boldFont() ? app.boldFont() : regular;
     st.mono = app.consoleFont();
     st.lineHeight = std::round(regular->FontSize * 1.55f);
     LinkClick click;
