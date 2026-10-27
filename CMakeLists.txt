@@ -222,6 +222,7 @@ if(SCULPTFORGE_BUILD_APP)
     src/app/PanelPerformance.cpp
     src/app/PanelGoz.cpp
     src/app/PanelBlender.cpp
+    src/app/PanelPhone.cpp
     src/app/PanelProject.cpp
     src/app/PanelSubTools.cpp
     src/app/Tablet.cpp

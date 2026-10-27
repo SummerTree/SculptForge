@@ -1,0 +1,91 @@
+# File > Capture from phone (docs/phone-link.md), driven by a scripted phone over real HTTP on 127.0.0.1: the
+# window and its QR code, a scan, a photo and a splat .ply uploaded into the Captures inbox (each upload loses a
+# chunk and resumes), View in AR (the model exported for the phone, then again after a stroke), and the live face
+# feed with a recorded take. Port 0: any free port, so tests can run side by side.
+env SCULPTFORGE_LINK_PORT 0
+run new_sphere subdivisions=4
+
+# The menu entry, with its Ctrl-hover help.
+click "File##palette.file"
+wait 0.2
+expect "Capture from phone##file.capture_phone"
+hold ctrl
+hover "Capture from phone##file.capture_phone"
+expect_help "scan the QR code"
+hold none
+click "Capture from phone##file.capture_phone"
+wait 0.3
+expect_value phone_running == 1
+expect_text "Scan with your phone's camera"
+expect_text "Waiting for your phone"
+hold ctrl
+hover "##phoneqr"
+expect_help "Point your phone's camera"
+hold none
+shot window
+
+# Only the session's token opens the link.
+phone_request GET /api/status?k=0123456789abcdef0123456789abcdef 403
+phone_request GET /api/status 200
+wait 0.2
+expect_text "iPhone"
+expect_status "Phone connected"
+
+# A scan (a few photos here): saved to Captures; splat training belongs to the splat feature.
+phone_upload splat data/phone/scan_01.png data/phone/scan_02.png
+wait 0.2
+expect_value phone_captures == 1
+expect_status "Scan received"
+expect_text "-splat"
+
+# A splat .ply from a scanning app loads next to the sculpt.
+phone_upload ply data/phone/scan_splat.ply
+wait 0.3
+expect_value splats == 400
+expect_value subtools == 1
+
+# View in AR: the phone asks, the model is exported for it (USDZ and GLB), and a stroke re-exports it.
+phone_request POST /api/ar 200 {"scope":"subtool","size":20}
+wait 0.1
+wait_idle 120
+expect_value phone_ar_version == 1
+phone_request GET /ar/model.usdz 200
+phone_request GET /ar/model.glb 200
+expect_text "On the phone:"
+wait 3
+stroke 0.3 0.88 0.7 0.88   # (below the window)
+wait 0.3
+wait_idle 120
+expect_value phone_ar_version == 2
+
+# The live face feed: frames arrive, the preview follows them; face_weights comes with the facs feature.
+phone_face jawOpen=0.7 mouthSmileLeft=0.9 mouthSmileRight=0.9 browInnerUp=0.8 frames=5
+wait 0.1
+expect_value phone_face_frames == 5
+expect_text "Live over Wi-Fi (HTTP)"
+shot face
+# A take: Record, frames, Stop.
+click "Record face take##phone.record_face"
+expect_value phone_recording == 1
+phone_face jawOpen=0.2 eyeBlinkLeft=1 frames=12
+wait 0.1
+expect_value phone_take_frames == 12
+click "Record face take##phone.record_face"
+expect_value phone_recording == 0
+expect_status "Face take saved"
+expect_status "12 frames"
+
+# One photo: it opens in Image to 3D (generating at once is turned off for the test: no network).
+click "Generate from a photo at once##phone"
+phone_upload photo data/phone/photo.png
+wait 0.3
+expect_value phone_captures == 3
+expect_status "press Generate in Image to 3D"
+shot photo
+
+# Closing the window stops the server.
+click "File##palette.file"
+wait 0.2
+click "Capture from phone##file.capture_phone"
+wait 0.2
+expect_value phone_running == 0

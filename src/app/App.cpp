@@ -231,6 +231,7 @@ bool App::init(const AppOptions& options) {
     initBrushLibrary(); // before a project can bring its own brushes
     initProject(); // before opening anything, so it lands in the recent files
     initActions(); // the default shortcuts and every command, for keys, help and the command palette
+    initPhoneActions(); // File > Capture from phone (PanelPhone.cpp)
     initLightBox();
     runCommand("new_sphere");
     if (!options.openPath.empty()) openPath(options.openPath);
@@ -341,6 +342,7 @@ int App::runUiTest(int w, int h, int fps) {
         pollUnreal();
         pollGenerator();
         pollBlender(); // (demo recordings leave the user's Blender bridge alone)
+        pollPhone();
         pollAutoUv();
         pollBake();
         pollQRemesh();
@@ -565,6 +567,7 @@ int App::run() {
         pollUnreal();
         pollGoz();
         pollBlender();
+        pollPhone();
         pollAutoUv();
         pollBake();
         pollQRemesh();
@@ -1293,6 +1296,7 @@ void App::drawUi() {
     if (showBrushLab_) drawBrushLab();
     drawBrushGallery();
     if (showImageTo3D_) drawImageTo3D();
+    drawPhoneWindow(); // File > Capture from phone (PanelPhone.cpp)
     pollAlphaFile();
     pollVdm();
     if (previewLod_ >= 0) {
