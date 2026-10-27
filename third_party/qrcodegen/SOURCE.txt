@@ -1,0 +1,3 @@
+QR Code generator library (C++), by Project Nayuki - MIT License (see the header of each file).
+https://github.com/nayuki/QR-Code-generator, tag v1.8.0, files cpp/qrcodegen.cpp and cpp/qrcodegen.hpp, unmodified.
+Used by src/link/Qr.cpp for the phone link's pairing QR code.

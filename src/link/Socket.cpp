@@ -202,7 +202,7 @@ std::string hostName() {
     return gethostname(name, sizeof name - 1) == 0 ? std::string(name) : std::string();
 }
 
-bool Socket::listen(const std::string& address, uint16_t port, uint16_t& boundPort, std::string& error) {
+bool Socket::listen(const std::string& address, uint16_t port, uint16_t& boundPort, std::string& error, int backlog) {
     close();
     if (!initSockets()) {
         error = "Networking is unavailable";
@@ -214,9 +214,15 @@ bool Socket::listen(const std::string& address, uint16_t port, uint16_t& boundPo
         return false;
     }
     fd_ = int64_t(s);
+#if !defined(_WIN32)
+    // A port whose last connections are still in TIME_WAIT can be listened on again at once (on Windows the
+    // option would let another program take the port over, and isn't needed there).
+    int yes = 1;
+    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
+#endif
     sockaddr_in local;
     if (!parseAddress(address, port, local) || bind(s, reinterpret_cast<sockaddr*>(&local), sizeof local) != 0 ||
-        ::listen(s, 1) != 0) {
+        ::listen(s, backlog) != 0) {
         error = "Cannot listen on " + address + ": " + lastError();
         close();
         return false;
@@ -227,15 +233,51 @@ bool Socket::listen(const std::string& address, uint16_t port, uint16_t& boundPo
     return true;
 }
 
-bool Socket::accept(Socket& client, int timeoutMs) {
+bool Socket::accept(Socket& client, int timeoutMs, std::string* from) {
     if (!valid() || !waitReadable(timeoutMs)) return false;
-    Native c = ::accept(native(fd_), nullptr, nullptr);
+    sockaddr_in peer{};
+    SockLen len = sizeof peer;
+    Native c = ::accept(native(fd_), reinterpret_cast<sockaddr*>(&peer), &len);
     if (invalid(c)) return false;
+    if (from) {
+        char text[INET_ADDRSTRLEN] = {};
+        inet_ntop(AF_INET, &peer.sin_addr, text, sizeof text);
+        *from = text;
+    }
     client.close();
     client.fd_ = int64_t(c);
 #if defined(SO_NOSIGPIPE)
     int yes = 1;
     setsockopt(c, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof yes);
+#endif
+    return true;
+}
+
+bool Socket::connect(const std::string& address, uint16_t port, std::string& error) {
+    close();
+    if (!initSockets()) {
+        error = "Networking is unavailable";
+        return false;
+    }
+    sockaddr_in to;
+    if (!parseAddress(address, port, to)) {
+        error = "Invalid address " + address;
+        return false;
+    }
+    Native s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (invalid(s)) {
+        error = lastError();
+        return false;
+    }
+    fd_ = int64_t(s);
+    if (::connect(s, reinterpret_cast<sockaddr*>(&to), sizeof to) != 0) {
+        error = "Cannot connect to " + address + ":" + std::to_string(port) + ": " + lastError();
+        close();
+        return false;
+    }
+#if defined(SO_NOSIGPIPE)
+    int yes = 1;
+    setsockopt(s, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof yes);
 #endif
     return true;
 }
@@ -263,6 +305,13 @@ bool Socket::receiveSome(std::string& data, size_t maxBytes, int timeoutMs) {
     }
     data.resize(size_t(n));
     return true;
+}
+
+long long Socket::readSome(char* buffer, size_t size, int timeoutMs) {
+    if (!valid()) return -1;
+    if (!waitReadable(timeoutMs)) return 0;
+    const auto n = recv(native(fd_), buffer, int(size), 0);
+    return n > 0 ? (long long)n : -1;
 }
 
 } // namespace sf::link

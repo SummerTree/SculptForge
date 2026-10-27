@@ -27,12 +27,18 @@ public:
     // Receives one datagram; false on timeout or error. `from` gets the sender's IPv4 address.
     bool receive(std::string& data, int timeoutMs, std::string* from = nullptr);
 
-    // TCP listener on `address` (port 0 = any free port); `boundPort` reports the port.
-    bool listen(const std::string& address, uint16_t port, uint16_t& boundPort, std::string& error);
-    bool accept(Socket& client, int timeoutMs);
+    // TCP listener on `address` (port 0 = any free port); `boundPort` reports the port. `backlog`: connections
+    // the system queues before accept.
+    bool listen(const std::string& address, uint16_t port, uint16_t& boundPort, std::string& error, int backlog = 1);
+    // `from` gets the client's IPv4 address.
+    bool accept(Socket& client, int timeoutMs, std::string* from = nullptr);
+    // TCP connection to `address`:`port` (blocking; meant for this machine and the local network).
+    bool connect(const std::string& address, uint16_t port, std::string& error);
     bool sendAll(const std::string& data, std::string& error);
     // Reads whatever is available (up to `maxBytes`), waiting at most `timeoutMs`.
     bool receiveSome(std::string& data, size_t maxBytes, int timeoutMs);
+    // Reads up to `size` bytes into `buffer`: the byte count, 0 on timeout, -1 when the peer closed or on error.
+    long long readSome(char* buffer, size_t size, int timeoutMs);
 
     bool valid() const { return fd_ >= 0; }
     void close();

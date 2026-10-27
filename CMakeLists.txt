@@ -97,6 +97,7 @@ add_library(sculptforge_core STATIC
   src/io/BlenderBridge.cpp
   src/io/BlenderCommands.cpp
   src/io/StlIO.cpp
+  src/io/ArExport.cpp
 )
 target_include_directories(sculptforge_core PUBLIC src PRIVATE third_party/stb third_party/ufbx third_party/xatlas third_party/mikktspace third_party/tinyexr)
 # Third-party C code: compile quietly.
@@ -139,6 +140,31 @@ if(MSVC)
   target_compile_options(sculptforge_ai PRIVATE /W4 /utf-8 /permissive-)
 else()
   target_compile_options(sculptforge_ai PRIVATE -Wall -Wextra -Wno-unused-parameter)
+endif()
+
+# --- Phone link (src/link/PhoneLink.h, docs/phone-link.md): the capture page server, AR export, live face feed ---
+option(SCULPTFORGE_WEBRTC "Live face feed over WebRTC (fetches libdatachannel and Mbed TLS; OFF: capture and AR only)" ON)
+include(cmake/EmbedFile.cmake)
+embed_files(${CMAKE_CURRENT_BINARY_DIR}/EmbeddedPhone.cpp sf::phone_assets
+  capturePage ${CMAKE_CURRENT_SOURCE_DIR}/assets/phone/capture.html
+  facePage ${CMAKE_CURRENT_SOURCE_DIR}/website/link/index.html)
+add_library(sculptforge_phone STATIC ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedPhone.cpp src/link/HttpServer.cpp
+  src/link/PhoneLink.cpp src/link/FaceFeed.cpp src/link/PhoneRtc.cpp src/link/Qr.cpp third_party/qrcodegen/qrcodegen.cpp)
+target_include_directories(sculptforge_phone PRIVATE third_party/qrcodegen)
+target_link_libraries(sculptforge_phone PUBLIC sculptforge_ai)
+if(SCULPTFORGE_WEBRTC)
+  include(cmake/WebRTC.cmake)
+  target_link_libraries(sculptforge_phone PRIVATE LibDataChannel::LibDataChannelStatic MbedTLS::MbedTLS)
+  target_compile_definitions(sculptforge_phone PRIVATE SF_HAVE_WEBRTC=1)
+else()
+  target_compile_definitions(sculptforge_phone PRIVATE SF_HAVE_WEBRTC=0)
+endif()
+if(MSVC)
+  target_compile_options(sculptforge_phone PRIVATE /W4 /utf-8 /permissive-)
+  set_source_files_properties(third_party/qrcodegen/qrcodegen.cpp PROPERTIES COMPILE_OPTIONS "/w")
+else()
+  target_compile_options(sculptforge_phone PRIVATE -Wall -Wextra -Wno-unused-parameter)
+  set_source_files_properties(third_party/qrcodegen/qrcodegen.cpp PROPERTIES COMPILE_OPTIONS "-w")
 endif()
 
 # --- Headless command-line tool (pipelines, build farms, AI agents) ---
@@ -205,7 +231,7 @@ if(SCULPTFORGE_BUILD_APP)
     src/render/Clusters.cpp
     src/render/Renderer.cpp
   )
-  target_link_libraries(sculptforge PRIVATE sculptforge_core sculptforge_ai imgui SDL3::SDL3)
+  target_link_libraries(sculptforge PRIVATE sculptforge_core sculptforge_ai sculptforge_phone imgui SDL3::SDL3)
   target_include_directories(sculptforge PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/lucide)
   target_compile_definitions(sculptforge PRIVATE SCULPTFORGE_VERSION="${PROJECT_VERSION}"
                                                  SF_UPDATE_CHECK=$<BOOL:${SCULPTFORGE_UPDATE_CHECK}>)
@@ -385,7 +411,7 @@ if(SCULPTFORGE_BUILD_TESTS)
                                    src/render/Clusters.cpp)
   target_include_directories(sculptforge_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
   target_compile_definitions(sculptforge_tests PRIVATE SF_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
-  target_link_libraries(sculptforge_tests PRIVATE sculptforge_core sculptforge_ai)
+  target_link_libraries(sculptforge_tests PRIVATE sculptforge_core sculptforge_ai sculptforge_phone)
   if(SCULPTFORGE_BUILD_APP) # the action registry (key chords, shortcut overrides) needs SDL's key names
     target_sources(sculptforge_tests PRIVATE src/app/Actions.cpp)
     target_link_libraries(sculptforge_tests PRIVATE SDL3::SDL3)

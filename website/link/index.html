@@ -1,0 +1,266 @@
+<!doctype html>
+<!-- SculptForge face capture (docs/phone-link.md). Served over HTTPS from the SculptForge website because phone
+     browsers only allow the camera on secure pages. MediaPipe Face Landmarker (Apache-2.0) runs here, on the phone;
+     only the 52 ARKit expression weights and the head rotation go to the computer, over a WebRTC data channel on
+     the local network. The connection details arrive in this URL's #fragment, which browsers never send to the
+     website. The same page is served by SculptForge itself at /face (it then posts frames over HTTP: for
+     localhost, e.g. Android with `adb reverse`, and tests). GPL-3.0-or-later. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f12">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<title>SculptForge face capture</title>
+<style>
+:root { --bg:#0f0f12; --bg2:#15151a; --panel:#1b1b21; --panel2:#22222a; --border:#2a2a31; --text:#ececf1; --muted:#a3a3ad;
+        --accent:#f28c3c; --accent2:#ffb06a; --ok:#4ad295; --bad:#ff6b6b; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { margin:0; background:var(--bg); color:var(--text); }
+body { font:400 16px/1.5 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing:antialiased;
+       min-height:100vh; padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+header { display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--border); }
+header .brand { font-weight:650; flex:1; display:flex; gap:9px; align-items:center; }
+.pill { font-size:13px; padding:4px 10px 4px 8px; border-radius:999px; background:var(--panel); border:1px solid var(--border);
+        color:var(--muted); display:flex; align-items:center; gap:6px; white-space:nowrap; max-width:58vw; overflow:hidden; text-overflow:ellipsis; }
+.dot { width:8px; height:8px; border-radius:50%; background:var(--muted); flex:none; }
+.pill.ok .dot { background:var(--ok); box-shadow:0 0 8px var(--ok); } .pill.bad .dot { background:var(--bad); } .pill.wait .dot { background:#ffcf5a; }
+main { padding:16px 18px; max-width:560px; margin:0 auto; }
+h1 { font-size:26px; line-height:1.15; margin:4px 0 8px; letter-spacing:-.02em; }
+p { margin:0 0 12px; } .muted { color:var(--muted); } .small { font-size:14px; }
+.stage { position:relative; border-radius:18px; overflow:hidden; background:#000; aspect-ratio:3/4; border:1px solid var(--border); }
+.stage video, .stage canvas { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+.stage .hud { position:absolute; left:10px; top:10px; right:10px; display:flex; justify-content:space-between; font-size:13px; }
+.stage .hud span { background:rgba(0,0,0,.55); padding:3px 9px; border-radius:999px; }
+.meters { display:grid; grid-template-columns:1fr 1fr; gap:8px 14px; margin:14px 0; }
+.meter { font-size:13px; color:var(--muted); }
+.meter i { display:block; height:6px; border-radius:99px; background:var(--bg2); margin-top:3px; overflow:hidden; }
+.meter i b { display:block; height:100%; width:0; background:linear-gradient(90deg,#e2742a,#ffb06a); }
+button.primary, a.primary { display:flex; align-items:center; justify-content:center; width:100%; min-height:52px; border:none; border-radius:14px;
+        font:600 17px/1 inherit; font-family:inherit; color:#1a0d04; background:linear-gradient(180deg,#f6994d,#e2742a); margin-top:10px; cursor:pointer; text-decoration:none; }
+button.secondary, a.secondary { display:flex; align-items:center; justify-content:center; width:100%; min-height:48px; border:1px solid var(--border);
+        border-radius:14px; font:600 16px/1 inherit; font-family:inherit; color:var(--text); background:var(--panel2); margin-top:10px; cursor:pointer; text-decoration:none; }
+.note { border-radius:12px; padding:11px 13px; font-size:14px; margin:10px 0; background:rgba(255,207,90,.08); border:1px solid rgba(255,207,90,.25); color:#ffe2a0; }
+.note.bad { background:rgba(255,107,107,.08); border-color:rgba(255,107,107,.3); color:#ffc2c2; }
+.hidden { display:none !important; }
+footer { text-align:center; color:#6f6f78; font-size:12px; padding:20px 18px 30px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l8.5 4.8v9.4L12 21.5l-8.5-4.8V7.3z" fill="none" stroke="#f28c3c" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.4L12 12l8.2-4.6M12 12v9.2" fill="none" stroke="#ffb06a" stroke-width="1.6" stroke-linejoin="round"/></svg>Face capture</div>
+  <div id="conn" class="pill"><span class="dot"></span><span id="connText">Not connected</span></div>
+</header>
+<main>
+  <section id="intro">
+    <h1>Drive a face with yours</h1>
+    <p class="muted" id="introText">Prop the phone up at eye level, light on your face, then start. The video stays on this phone.</p>
+    <button class="primary" id="start">Start the camera</button>
+    <div id="msg"></div>
+  </section>
+  <section id="live" class="hidden">
+    <div class="stage"><video id="video" playsinline muted autoplay></video><canvas id="overlay"></canvas>
+      <div class="hud"><span id="fps">-- fps</span><span id="track">Looking for a face...</span></div></div>
+    <div class="meters" id="meters"></div>
+    <div id="liveMsg"></div>
+    <button class="secondary hidden" id="direct">Connect without internet</button>
+    <button class="secondary" id="pause">Pause</button>
+  </section>
+  <a class="secondary hidden" id="back" href="#">Back to capture</a>
+</main>
+<footer>Face tracking: MediaPipe Face Landmarker (Apache-2.0), running on this phone. Only 52 numbers and a rotation per frame are sent, to your computer.</footer>
+
+<script type="module">
+"use strict";
+const MP_VERSION = "1.1.0";
+const MP_BASE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}`;
+const MODEL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const note = (el, text, kind) => { el.innerHTML = text ? `<div class="note ${kind || ""}">${text}</div>` : ""; };
+const setConn = (state, text) => { $("conn").className = "pill " + state; $("connText").textContent = text; };
+
+// Connection details: #v=1&k=token&d=desktop&o=offer&n=name&x=key&r=relay (from the desktop's capture page), or
+// ?k=token when SculptForge serves this page itself at /face.
+const frag = new URLSearchParams(location.hash.slice(1));
+const query = new URLSearchParams(location.search);
+const served = location.pathname.endsWith("/face") && query.get("k"); // from the desktop: HTTP transport
+const token = served ? query.get("k") : frag.get("k");
+const desktop = served ? location.origin : frag.get("d");
+const desktopName = frag.get("n") || "your computer";
+history.replaceState(null, "", location.pathname + (served ? location.search : "")); // keep the secrets out of history
+
+if (desktop && token) {
+  $("back").href = `${desktop}/?k=${encodeURIComponent(token)}`;
+  $("back").classList.remove("hidden");
+}
+if (!token || (!served && !frag.get("o"))) {
+  $("introText").textContent = "Open this page from SculptForge: File > Capture from phone on your computer, scan the QR code, then tap Face capture.";
+  $("start").classList.add("hidden");
+}
+if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+  note($("msg"), "This browser only allows the camera on secure (https) pages. Open face capture from the capture page's Face capture button.", "bad");
+  $("start").disabled = true;
+}
+
+const b64u = {
+  enc: (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
+  dec: (text) => Uint8Array.from(atob(text.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((text.length + 3) % 4)), (c) => c.charCodeAt(0)),
+  str: (text) => new TextDecoder().decode(b64u.dec(text)),
+};
+
+// --- Transport ---
+let send = () => false;
+let pc = null, channel = null, answerSdp = "";
+
+async function connectHttp() {
+  // Frames are posted to the page's own computer; one request in flight at a time, the newest frame wins.
+  let pending = null, inFlight = false;
+  const pump = async () => {
+    if (inFlight || !pending) return;
+    inFlight = true;
+    const body = pending; pending = null;
+    try {
+      const r = await fetch("/api/face", { method: "POST", headers: { "X-SF-Token": token, "Content-Type": "application/json" }, body });
+      setConn(r.ok ? "ok" : "bad", r.ok ? "Sending" : "Refused");
+    } catch (e) { setConn("bad", "Not connected"); }
+    inFlight = false;
+    pump();
+  };
+  send = (text) => { pending = text; pump(); return true; };
+  setConn("ok", "Wi-Fi");
+}
+
+async function connectRtc() {
+  setConn("wait", "Connecting...");
+  pc = new RTCPeerConnection({ iceServers: [] });
+  channel = pc.createDataChannel("face", { negotiated: true, id: 0, ordered: false, maxRetransmits: 0 });
+  channel.onopen = () => { setConn("ok", "Connected to " + desktopName); $("direct").classList.add("hidden"); note($("liveMsg"), ""); };
+  channel.onclose = () => setConn("bad", "Disconnected");
+  pc.onconnectionstatechange = () => {
+    if (pc.connectionState === "failed") {
+      setConn("bad", "Couldn't connect");
+      note($("liveMsg"), "The phone couldn't reach your computer over Wi-Fi. Both must be on the same network (no guest Wi-Fi, no VPN), and the computer's firewall must allow SculptForge.", "bad");
+    }
+  };
+  await pc.setRemoteDescription({ type: "offer", sdp: b64u.str(frag.get("o")) });
+  await pc.setLocalDescription(await pc.createAnswer());
+  await new Promise((resolve) => {
+    if (pc.iceGatheringState === "complete") return resolve();
+    const done = () => { if (pc.iceGatheringState === "complete") resolve(); };
+    pc.addEventListener("icegatheringstatechange", done);
+    setTimeout(resolve, 2500); // what we have by then is enough on a local network
+  });
+  answerSdp = pc.localDescription.sdp;
+  send = (text) => {
+    if (!channel || channel.readyState !== "open" || channel.bufferedAmount > 32768) return false;
+    channel.send(text);
+    return true;
+  };
+  // The answer goes back through the relay, encrypted with the key from the fragment (the relay can't read it).
+  const relay = frag.get("r");
+  if (relay) {
+    try {
+      const key = await crypto.subtle.importKey("raw", b64u.dec(frag.get("x")), "AES-GCM", false, ["encrypt"]);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const plain = new TextEncoder().encode(JSON.stringify({ k: token, sdp: answerSdp }));
+      const cipher = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plain));
+      const packed = new Uint8Array(iv.length + cipher.length);
+      packed.set(iv); packed.set(cipher, iv.length);
+      await fetch(relay, { method: "POST", body: b64u.enc(packed) });
+    } catch (e) {
+      note($("liveMsg"), "No internet to set up the connection: tap Connect without internet.", "");
+    }
+  }
+  // Without internet (or if the relay is slow): a tab on the computer's own page delivers the answer.
+  setTimeout(() => { if (!channel || channel.readyState !== "open") $("direct").classList.remove("hidden"); }, relay ? 6000 : 0);
+}
+
+$("direct").onclick = () => {
+  const url = `${desktop}/rtc-answer?k=${encodeURIComponent(token)}&a=${b64u.enc(new TextEncoder().encode(answerSdp))}`;
+  window.open(url, "_blank");
+};
+
+// --- Tracking ---
+let landmarker = null, video = $("video"), running = false, paused = false, lastSent = 0, frames = 0, fpsT = performance.now();
+const SHOWN = [["jawOpen", "Jaw open"], ["mouthSmileLeft", "Smile L"], ["mouthSmileRight", "Smile R"], ["eyeBlinkLeft", "Blink L"],
+               ["eyeBlinkRight", "Blink R"], ["browInnerUp", "Brows up"], ["mouthPucker", "Pucker"], ["cheekPuff", "Cheek puff"]];
+$("meters").innerHTML = SHOWN.map(([k, label]) => `<div class="meter">${label}<i><b id="m_${k}"></b></i></div>`).join("");
+
+// Rotation part of MediaPipe's column-major 4x4 face transform, as [x, y, z, w].
+function quatFromMatrix(m) {
+  const m00 = m[0], m10 = m[1], m20 = m[2], m01 = m[4], m11 = m[5], m21 = m[6], m02 = m[8], m12 = m[9], m22 = m[10];
+  const sx = Math.hypot(m00, m10, m20) || 1, sy = Math.hypot(m01, m11, m21) || 1, sz = Math.hypot(m02, m12, m22) || 1;
+  const a = m00 / sx, b = m01 / sy, c = m02 / sz, d = m10 / sx, e = m11 / sy, f = m12 / sz, g = m20 / sx, h = m21 / sy, i = m22 / sz;
+  const tr = a + e + i;
+  let x, y, z, w;
+  if (tr > 0) { const s = Math.sqrt(tr + 1) * 2; w = s / 4; x = (h - f) / s; y = (c - g) / s; z = (d - b) / s; }
+  else if (a > e && a > i) { const s = Math.sqrt(1 + a - e - i) * 2; w = (h - f) / s; x = s / 4; y = (b + d) / s; z = (c + g) / s; }
+  else if (e > i) { const s = Math.sqrt(1 + e - a - i) * 2; w = (c - g) / s; x = (b + d) / s; y = s / 4; z = (f + h) / s; }
+  else { const s = Math.sqrt(1 + i - a - e) * 2; w = (d - b) / s; x = (c + g) / s; y = (f + h) / s; z = s / 4; }
+  return [x, y, z, w].map((v) => Math.round(v * 1e5) / 1e5);
+}
+
+function tick() {
+  if (!running) return;
+  const now = performance.now();
+  if (!paused && video.readyState >= 2 && now - lastSent >= 30) { // about 30 frames a second
+    const result = landmarker.detectForVideo(video, now);
+    const shapes = result.faceBlendshapes && result.faceBlendshapes[0];
+    if (shapes) {
+      const weights = {};
+      for (const c of shapes.categories) if (c.categoryName !== "_neutral") weights[c.categoryName] = Math.round(c.score * 1e4) / 1e4;
+      const msg = { type: "face", t: Math.round(now * 10) / 10, weights };
+      const m = result.facialTransformationMatrixes && result.facialTransformationMatrixes[0];
+      if (m && m.data && m.data.length >= 16) msg.head = quatFromMatrix(m.data);
+      send(JSON.stringify(msg));
+      lastSent = now;
+      frames++;
+      $("track").textContent = "Tracking";
+      for (const [k] of SHOWN) { const el = $("m_" + k); if (el) el.style.width = ((weights[k] || 0) * 100).toFixed(0) + "%"; }
+    } else {
+      $("track").textContent = "Looking for a face...";
+    }
+  }
+  if (now - fpsT > 1000) { $("fps").textContent = frames + " fps"; frames = 0; fpsT = now; }
+  (video.requestVideoFrameCallback ? video.requestVideoFrameCallback.bind(video) : requestAnimationFrame)(tick);
+}
+
+$("start").onclick = async () => {
+  $("start").disabled = true;
+  note($("msg"), "Starting the camera...", "");
+  try {
+    // The camera first: browsers then also share this phone's local address, which helps WebRTC.
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+    video.srcObject = stream;
+    await video.play();
+    note($("msg"), "Loading face tracking (about 5 MB, once)...", "");
+    const { FaceLandmarker, FilesetResolver } = await import(`${MP_BASE}/vision_bundle.mjs`);
+    const files = await FilesetResolver.forVisionTasks(`${MP_BASE}/wasm`);
+    const options = (delegate) => ({ baseOptions: { modelAssetPath: MODEL, delegate }, runningMode: "VIDEO", numFaces: 1,
+                                     outputFaceBlendshapes: true, outputFacialTransformationMatrixes: true });
+    try { landmarker = await FaceLandmarker.createFromOptions(files, options("GPU")); }
+    catch (e) { landmarker = await FaceLandmarker.createFromOptions(files, options("CPU")); }
+    $("intro").classList.add("hidden");
+    $("live").classList.remove("hidden");
+    if (served) await connectHttp(); else await connectRtc();
+    running = true;
+    tick();
+    if (navigator.wakeLock) { try { await navigator.wakeLock.request("screen"); } catch (e) {} }
+  } catch (e) {
+    $("start").disabled = false;
+    const denied = e && (e.name === "NotAllowedError" || e.name === "SecurityError");
+    note($("msg"), denied ? "Camera access was refused. Allow the camera for this page in the browser's settings and try again."
+                          : "Couldn't start: " + esc(e.message || e), "bad");
+  }
+};
+$("pause").onclick = () => {
+  paused = !paused;
+  $("pause").textContent = paused ? "Resume" : "Pause";
+  $("track").textContent = paused ? "Paused" : "Tracking";
+};
+window.addEventListener("pagehide", () => { try { send(JSON.stringify({ type: "bye" })); } catch (e) {} });
+</script>
+</body>
+</html>
