@@ -221,8 +221,8 @@ void App::registerSplatTrainUi() {
         [this] { return splatTrain_->job.busy(); },
         "Stop training now and keep what it has learned (the newest checkpoint) as the result.",
         "splat_train_cancel");
-    add("splats.train_cancel", "Cancel##splattrain", ICON_LC_X, [this] { runCommand("splat_train_cancel"); },
-        [this] { return splatTrain_->job.busy(); }, "Stop training and keep nothing.", "splat_train_cancel");
+    add("splats.train_cancel", "Cancel", ICON_LC_X, [this] { runCommand("splat_train_cancel"); },
+        [this] { return splatTrain_->job.busy(); }, "Stop training. Nothing is saved; the last preview stays in the viewport until you Clear the splats.", "splat_train_cancel");
     add("splats.train_choose_brush", "Choose Brush...", nullptr,
         [this] { SDL_ShowOpenFileDialog(onPicked, pickTag(Pick::Brush), window_, nullptr, 0, nullptr, false); }, nullptr,
         "Use a Brush trainer you already have (brush_app): for example one you built yourself with cargo on Linux "
@@ -281,7 +281,15 @@ void App::pollSplatTrain() {
         doc_.splatsChanged();
         renderSettings_.showSplats = true;
         ++s.previews;
-        if (first) camera_.frame(sceneBounds());
+        if (first) {
+            // A capture lands where the sculpt is (a new scene's sphere would hide it): show the splat alone; Show
+            // mesh in the Splats palette brings the sculpt back.
+            if (renderSettings_.showMesh) {
+                renderSettings_.showMesh = false;
+                status_ = "Showing the splat as it trains (Splats > Show mesh brings the sculpt back)";
+            }
+            camera_.frame(sceneBounds());
+        }
     }
     if (s.job.busy()) return;
     s.active = false;

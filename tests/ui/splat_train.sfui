@@ -1,0 +1,81 @@
+# Splats > Train from capture, with a stand-in for Brush and COLMAP (CMake points SCULPTFORGE_BRUSH / _COLMAP /
+# _FFMPEG at tests/tools/fake_splat_tools.cpp, which writes a checkpoint every 250 steps). The capture is the
+# synthetic phone capture in tests/data/splat_capture (photos + AR poses). Checks the live preview, orbiting
+# while it trains, the progress overlay, Good enough - stop, Cancel, a trainer crash and the Brush prompt.
+env FAKE_BRUSH_MS_PER_EXPORT 150
+env FAKE_BRUSH_FAIL_AT -1
+copy ../data/splat_capture ui-shots/splat_train/capture
+
+# The section at the top of the Splats palette.
+click "Splats##palette.splats"
+expect "Video...##splats.train_video"
+expect "Photos Folder...##splats.train_folder"
+expect_text "Train from capture"
+expect_text "Fast preview"
+shot palette
+key escape
+
+# Train: the splat appears after the first checkpoints and the view still turns while it trains.
+run splat_train source=ui-shots/splat_train/capture
+expect_value splat_training == 1
+wait_value splat_previews >= 2 30
+expect_value splats > 100
+expect_value show_mesh == 0
+expect "Good enough - stop##splats.train_stop"
+expect "Cancel##splats.train_cancel"
+expect_text "Training splat - Fast preview"
+expect_text "steps"
+shot training
+remember camera_yaw yaw0
+orbit 300 0
+expect_value camera_yaw != $yaw0
+expect_value splat_training == 1
+shot training_orbited
+wait_idle 60
+expect_value splat_training == 0
+expect_value splat_train_stage == 4
+expect_value splat_train_step == 5000
+expect_value splat_train_psnr > 25
+expect_value splats > 1000
+expect_status "Splat trained"
+expect_no_text "Training splat"
+shot done
+
+# Good enough - stop: keeps the newest checkpoint.
+run splat_train source=ui-shots/splat_train/capture
+wait_value splat_previews >= 1 30
+click "Good enough - stop##splats.train_stop"
+wait_idle 60
+expect_value splat_train_stage == 4
+expect_value splat_train_step < 5000
+expect_status "Splat trained"
+
+# Cancel: nothing kept.
+env FAKE_BRUSH_MS_PER_EXPORT 400
+run splat_train source=ui-shots/splat_train/capture
+wait_value splat_previews >= 1 30
+click "Cancel##splats.train_cancel"
+wait_idle 30
+expect_value splat_train_stage == 6
+expect_status "Cancelled"
+
+env FAKE_BRUSH_MS_PER_EXPORT 150
+
+# The trainer crashes: the status bar says so (with the log's last lines).
+env FAKE_BRUSH_FAIL_AT 500
+run splat_train source=ui-shots/splat_train/capture
+wait_idle 30
+expect_value splat_train_stage == 5
+expect_status "Brush stopped with an error"
+env FAKE_BRUSH_FAIL_AT -1
+
+# No Brush: a prompt says what would be downloaded (nothing is, without a click).
+env SCULPTFORGE_BRUSH /nonexistent/brush_app
+run splat_train source=ui-shots/splat_train/capture
+expect_value splat_train_prompt == 1
+expect_value splat_training == 0
+expect_text "Splat training needs Brush"
+expect "Not now"
+shot brush_prompt
+click "Not now"
+expect_value splat_train_prompt == 0

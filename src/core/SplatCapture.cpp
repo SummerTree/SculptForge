@@ -76,6 +76,8 @@ void readIntrinsics(const Json& f, CameraView& v) {
     v.cy = float(f["cy"].asNumber(v.cy));
     v.width = int(f["w"].asNumber(v.width));
     v.height = int(f["h"].asNumber(v.height));
+    if (v.cx <= 0 && v.width > 0) v.cx = float(v.width) * 0.5f; // principal point: the image centre by default
+    if (v.cy <= 0 && v.height > 0) v.cy = float(v.height) * 0.5f;
 }
 
 // COLMAP pose (world-to-camera rotation as a quaternion and translation, OpenCV axes) to an OpenGL camToWorld.

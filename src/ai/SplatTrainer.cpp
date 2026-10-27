@@ -626,8 +626,7 @@ bool SplatTrainJob::train(const TrainRequest& r, const std::string& dataset) {
     const double trainStart = nowSeconds();
     size_t logOffset = 0;
     std::string partial;
-    int loadedStep = -1, pendingStep = -1;
-    uintmax_t pendingSize = 0;
+    int loadedStep = -1;
     bool sawError = false;
     auto readLog = [&] {
         std::ifstream f(u8path(log), std::ios::binary);
@@ -651,21 +650,26 @@ bool SplatTrainJob::train(const TrainRequest& r, const std::string& dataset) {
             sawError = sawError || t.error;
         }
     };
-    // A checkpoint is loaded once its size stops changing between two checks (Brush may still be writing it).
+    // The newest checkpoint is loaded once its size holds still for a moment (Brush may still be writing it); a
+    // file that doesn't parse yet is tried again on the next check.
     auto pollCheckpoints = [&](bool final) {
         int step = -1;
         const std::string path = latestCheckpoint(pathString(checkpoints), step);
         if (path.empty() || step <= loadedStep) return;
-        const uintmax_t size = fs::file_size(u8path(path), ec);
-        if (ec) return;
-        if (final || (step == pendingStep && size == pendingSize && size > 0)) {
-            if (loadCheckpoint(path, step)) loadedStep = step;
-            pendingStep = -1;
-        } else {
-            pendingStep = step;
-            pendingSize = size;
-        }
         update([&](TrainStatus& s) { s.step = std::max(s.step, step); });
+        const uintmax_t size = fs::file_size(u8path(path), ec);
+        if (ec || size == 0) return;
+        if (!final) {
+            sleepSeconds(std::min(0.1, pollSeconds));
+            if (fs::file_size(u8path(path), ec) != size || ec) return;
+        }
+        if (!loadCheckpoint(path, step)) return;
+        loadedStep = step;
+        // Older checkpoints are no longer needed (a Quality run would otherwise leave gigabytes of them).
+        for (fs::directory_iterator it(checkpoints, ec), end; !ec && it != end; it.increment(ec)) {
+            const int s = checkpointStep(pathString(it->path().filename()));
+            if (s >= 0 && s < step) fs::remove(it->path(), ec);
+        }
     };
     while (p.running()) {
         if (stopRequested()) {

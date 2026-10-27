@@ -330,6 +330,9 @@ TEST(splat_train_job_photos_to_splat_with_live_previews) {
     CHECK(st.psnr > 25.0); // the fake's last evaluation
     CHECK(fs::exists(st.result) && fs::path(st.result).filename() == "sf_train_photos.ply");
     CHECK(fs::exists(out / "work" / "dataset" / "sparse" / "0" / "images.txt"));
+    int checkpoints = 0;
+    for (const auto& e : fs::directory_iterator(out / "work" / "checkpoints")) checkpoints += e.path().extension() == ".ply";
+    CHECK(checkpoints == 1); // older checkpoints are deleted once a newer one is loaded
     CHECK(fs::exists(out / "work" / "dataset" / "images" / "IMG_0003.png")); // photos keep their names
     CHECK(last && last->size() > 100);
     if (last) {
@@ -497,4 +500,22 @@ TEST(splat_train_settings_round_trip) {
         CHECK(std::string(d->sha256).size() == 64);
         CHECK(std::string(d->url).rfind("https://github.com/ArthurBrussee/brush/releases/download/", 0) == 0);
     }
+}
+
+TEST(splat_capture_test_capture_poses_look_at_the_object) {
+    // tests/data/splat_capture (tools/splat/make_test_capture.py): the phone-link capture.json layout with AR poses.
+    CaptureInfo info;
+    std::string err;
+    CHECK(readCaptureJson(std::string(SF_TEST_DATA_DIR) + "/splat_capture/capture.json", info, err));
+    CHECK(info.kind == "splat" && info.files.size() == 20 && info.poses.size() == 20);
+    for (const CameraView& v : info.poses) {
+        // The maquette's head (0, 0.55, 0) projects near the middle of every photo.
+        const glm::vec4 p = glm::inverse(v.camToWorld) * glm::vec4(0, 0.55f, 0, 1);
+        CHECK(p.z < 0); // in front of an OpenGL camera
+        const float u = v.cx + v.fx * p.x / -p.z, w = v.cy - v.fy * p.y / -p.z;
+        CHECK(std::abs(u - 64.0f) < 20.0f && std::abs(w - 48.0f) < 30.0f);
+    }
+    const glm::mat4 m = orbitFraming(info.poses);
+    CHECK(glm::length(glm::vec3(m * glm::vec4(0, 0.4f, 0, 1))) < 0.3f);
+    CHECK(glm::normalize(glm::vec3(m * glm::vec4(0, 1, 0, 0))).y > 0.99f);
 }

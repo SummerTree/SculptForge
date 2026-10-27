@@ -12,8 +12,9 @@
 //    world up = +Z (as arbitrary as a real reconstruction); FAKE_COLMAP_FAIL=1 fails
 //  - Brush   (DATASET --total-steps N --export-every K --export-path DIR ...):
 //    checks the dataset, prints Brush's log lines and writes export_<step>.ply
-//    checkpoints of a sphere around (1,2,3) that gets sharper;
+//    checkpoints of a sphere where the cameras look that gets sharper;
 //    FAKE_BRUSH_MS_PER_EXPORT (20) slows it down, FAKE_BRUSH_FAIL_AT=<step> crashes
+#include "core/SplatCapture.h"
 #include "core/Splats.h"
 #include "io/PlyIO.h"
 
@@ -145,6 +146,21 @@ int fakeBrush(int argc, char** argv) {
     fs::create_directories(out);
     std::printf("[2026-10-26T00:00:00Z INFO  brush_process::train_stream] Start of training stream\n");
     std::fflush(stdout);
+    // The "object": a sphere where the cameras look (as a real trainer would find it), sized to their distance.
+    glm::vec3 centre(1, 2, 3);
+    float radius = 0.5f;
+    {
+        std::vector<sf::capture::CameraView> views;
+        std::string err;
+        const bool ok = fs::exists(ds / "transforms.json")
+                            ? sf::capture::readTransformsJson((ds / "transforms.json").string(), views, err)
+                            : sf::capture::readColmapImages((ds / "sparse" / "0").string(), views, err);
+        if (ok && views.size() >= 2) {
+            const glm::mat4 framing = sf::capture::orbitFraming(views);
+            centre = glm::vec3(glm::inverse(framing) * glm::vec4(0, 0, 0, 1));
+            radius = 0.7f * glm::length(glm::vec3(glm::inverse(framing) * glm::vec4(1, 0, 0, 0)));
+        }
+    }
     std::mt19937 rng(42);
     std::normal_distribution<float> normal(0.0f, 1.0f);
     for (int step = every; step <= total + every - 1; step += every) {
@@ -167,9 +183,9 @@ int fakeBrush(int argc, char** argv) {
         for (int i = 0; i < count; ++i) {
             glm::vec3 d(normal(rng), normal(rng), normal(rng));
             d = glm::normalize(d);
-            cloud.positions[size_t(i)] = glm::vec3(1, 2, 3) + 0.5f * d + noise * glm::vec3(normal(rng), normal(rng), normal(rng));
+            cloud.positions[size_t(i)] = centre + radius * d + radius * noise * glm::vec3(normal(rng), normal(rng), normal(rng));
             cloud.rotations[size_t(i)] = glm::quat(1, 0, 0, 0);
-            cloud.scales[size_t(i)] = glm::vec3(0.02f);
+            cloud.scales[size_t(i)] = glm::vec3(0.04f * radius);
             cloud.opacities[size_t(i)] = 0.9f;
             cloud.setColor(size_t(i), glm::vec3(0.5f + 0.5f * d.x, 0.5f + 0.5f * d.y, 0.5f + 0.5f * d.z));
         }
