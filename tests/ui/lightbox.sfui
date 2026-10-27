@@ -14,6 +14,10 @@ expect "LightBox/Built-in"
 wait_idle 60
 shot lightbox-tool
 
+# The header links to the issue forms ("Fixes & suggestions"; tests never open a browser).
+click "LightBox/###Fixes & suggestions"
+expect_status Submit a request for a fix or a suggestion
+
 # Double-click a model to open it (replaces the scene), Shift+double-click to append it as a SubTool.
 double_click "LightBox/Sphere"
 expect_value triangles > 128

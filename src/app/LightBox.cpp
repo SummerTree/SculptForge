@@ -602,7 +602,7 @@ void LightBox::drawHeader(App& app, float width) {
         drawBreadcrumb(app);
     }
 
-    // Right side: [Save now] on the QuickSave tab, filter, rows, open folder, close. Narrow canvases
+    // Right side: [Save now] on the QuickSave tab, filter, rows, open folder, fixes & suggestions, close. Narrow canvases
     // get icon-only buttons and a shorter filter first.
     const bool quickTab = place_.tab == LibraryTab::QuickSave;
     const float rowsW = 4 * (ImGui::GetFrameHeight() + 2.0f);
@@ -614,16 +614,20 @@ void LightBox::drawHeader(App& app, float width) {
         return ImGui::CalcTextSize(text, nullptr, true).x + style.FramePadding.x * 2;
     };
     float filterW = 160.0f * scale;
-    bool compact = false;
+    bool compact = false, compactFeedback = false; // the feedback button keeps its words longest
     auto groupW = [&] {
         const float saveW =
             quickTab ? buttonW(compact ? ICON_LC_SAVE : ICON_LC_SAVE "  Save now") + 8.0f * scale : 0.0f;
         const float folderW = buttonW(compact ? ICON_LC_FOLDER_PLUS : ICON_LC_FOLDER_PLUS "  Open folder...");
-        return saveW + filterW + rowsW + folderW + closeW + 3 * 8.0f * scale;
+        const float feedbackW =
+            buttonW(compactFeedback ? ICON_LC_MESSAGE_SQUARE_PLUS : ICON_LC_MESSAGE_SQUARE_PLUS "  Fixes & suggestions");
+        return saveW + filterW + rowsW + folderW + feedbackW + closeW + 4 * 8.0f * scale;
     };
-    if (right - leftEnd - 8.0f < groupW()) compact = true;
-    if (right - leftEnd - 8.0f < groupW())
-        filterW = std::max(70.0f * scale, filterW - (groupW() - (right - leftEnd - 8.0f)));
+    const float room = right - leftEnd - 8.0f;
+    if (room < groupW()) compact = true;
+    // A shorter filter before an icon-only "Fixes & suggestions" (it is the startup screen's way to reach us).
+    if (room < groupW() && filterW - (groupW() - room) < 70.0f * scale) compactFeedback = true;
+    if (room < groupW()) filterW = std::max(70.0f * scale, filterW - (groupW() - room));
     ImGui::SetCursorScreenPos(ImVec2(std::max(leftEnd + 8.0f, right - groupW()), origin.y));
     if (quickTab) {
         if (ImGui::Button(compact ? ICON_LC_SAVE "###QuickSave now" : ICON_LC_SAVE "  Save now###QuickSave now"))
@@ -651,6 +655,14 @@ void LightBox::drawHeader(App& app, float width) {
         SDL_ShowOpenFolderDialog(onFolderChosen, this, app.window_, nullptr, false);
     ui::HelpText("Open folder", nullptr, "Add a folder of your own to the LightBox (shown at the root of every tab).",
                  "LightBox");
+    ImGui::SameLine(0, 8 * scale);
+    if (ImGui::Button(compactFeedback ? ICON_LC_MESSAGE_SQUARE_PLUS "###Fixes & suggestions"
+                              : ICON_LC_MESSAGE_SQUARE_PLUS "  Fixes & suggestions###Fixes & suggestions")) {
+        if (app.interactive()) app.actions_.find("help.feedback")->run();
+        app.status_ = "Submit a request for a fix or a suggestion: "
+                      "https://github.com/islandmed/SculptForge/issues/new/choose";
+    }
+    ui::HelpAction(app, "help.feedback");
     ImGui::SameLine(0, 8 * scale);
     if (ImGui::Button(ICON_LC_X "##lbclose", ImVec2(closeW, 0))) open_ = false;
     ui::HelpText("Close LightBox", ",", "Hide the LightBox (comma toggles it).", "LightBox");

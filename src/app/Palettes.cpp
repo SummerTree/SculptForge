@@ -291,6 +291,7 @@ void App::drawPalette_Help() {
     menuAction(*this, "ui.command_palette");
     menuAction(*this, "help.website");
     menuAction(*this, "help.report");
+    menuAction(*this, "help.feedback");
     ImGui::Separator();
     menuAction(*this, "help.about");
 }

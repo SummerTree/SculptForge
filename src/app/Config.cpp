@@ -307,6 +307,10 @@ void App::initActions() {
         ICON_LC_BOOK_OPEN, nullptr, nullptr, nullptr, "Open the SculptForge website and user guide in your browser.");
     add("help.report", "Report a problem", "Help", nullptr, [] { SDL_OpenURL("https://github.com/islandmed/SculptForge/issues"); },
         ICON_LC_CIRCLE_ALERT, nullptr, nullptr, nullptr, "Open the issue tracker in your browser.");
+    add("help.feedback", "Fixes & suggestions", "Help", nullptr,
+        [] { SDL_OpenURL("https://github.com/islandmed/SculptForge/issues/new/choose"); }, ICON_LC_MESSAGE_SQUARE_PLUS,
+        nullptr, nullptr, nullptr,
+        "Submit a request for a fix or a suggestion: opens the bug report and feature request forms in your browser.");
 
     // --- Command palette and console ---
     add("ui.command_palette", "Command palette", "Help", "F3 / Ctrl+Shift+P", [this] { palette_.open(); }, ICON_LC_SEARCH, nullptr,

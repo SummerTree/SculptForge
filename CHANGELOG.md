@@ -6,6 +6,13 @@ All notable changes to SculptForge are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+- "Fixes & suggestions" in the LightBox header (shown at startup) and the Help menu: opens the bug report and
+  feature request forms on GitHub.
+
+### Changed
+- Website: the tagline now reads "the free, open-source alternative to ZBrush and Mudbox".
+
 ## [0.8.1] - 2026-10-25
 
 Fixes from a ZBrush artist's testing, and ZTools from ZBrush.
