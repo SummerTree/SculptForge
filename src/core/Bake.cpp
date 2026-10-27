@@ -864,6 +864,8 @@ bool bakeMaps(const Mesh& low, const std::vector<const Mesh*>& sources, const Ba
         dMin = std::min(dMin, localMin);
         dMax = std::max(dMax, localMax);
     });
+    // Only worker 0 reports progress; when the other workers took every tile, ask once more here.
+    if (!cancel && progress && !progress(0.95f)) cancel = true;
     if (cancel) {
         error = "Cancelled";
         out = BakeResult();
