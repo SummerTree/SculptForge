@@ -1,11 +1,11 @@
 {
-  "version": "0.9.0",
+  "version": "0.8.1",
   "download": "https://sculptforge.app/#download",
   "notes": "https://sculptforge.app/guide/whats-new.html",
   "highlights": [
-    "Capture from phone: scan an object and the splat trains live on your graphics card",
-    "Make sculptable: a scan becomes a clean quad mesh with colours and face loops",
-    "Generate the 52 ARKit facial shapes on any sculpted head",
-    "Drive the face live with your phone's camera, and see your sculpt on your desk in AR"
+    "Bring your ZTools over: a free ZBrush plug-in converts them, then SculptForge opens the .ZTL",
+    "Hold Ctrl for the mask brushes (MaskLasso, MaskRect) and Ctrl+Shift for SelectRect / SelectLasso, as in ZBrush",
+    "Texture painting 4-5x faster, and New Texture right where you paint",
+    "Group by UVs, and ZBrush's zoom direction"
   ]
 }
