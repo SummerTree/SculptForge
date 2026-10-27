@@ -344,6 +344,7 @@ int App::runUiTest(int w, int h, int fps) {
         pollAutoUv();
         pollBake();
         pollQRemesh();
+        pollSplatTrain();
         updateCameraAspect();
 
         Demo::beginFrame();
@@ -501,6 +502,7 @@ int App::runRecording() {
         pollAutoUv();
         pollBake();
         pollQRemesh();
+        pollSplatTrain();
         updateCameraAspect();
 
         Demo::beginFrame();
@@ -568,6 +570,7 @@ int App::run() {
         pollAutoUv();
         pollBake();
         pollQRemesh();
+        pollSplatTrain();
 
         int fbW = 0, fbH = 0, winW = 0, winH = 0;
         SDL_GetWindowSizeInPixels(window_, &fbW, &fbH);
@@ -1311,6 +1314,7 @@ void App::drawUi() {
     drawGizmo(); // Gizmo 3D handles and panel (Gizmo.cpp)
     drawQRemeshGuides(); // QRemesh Guides curves (PanelRetopo.cpp)
     drawFaceOverlay();   // facial landmarks (PanelFace.cpp)
+    drawSplatTrainOverlay(); // splat training progress (PanelSplatTrain.cpp)
     // In Gizmo mode (and with the QRemesh Guides brush) the brush ring shows only while Ctrl masks or Shift smooths.
     const bool ringOff = gizmoActive() || (guidesMode_ && !(inputMods() & SDL_KMOD_SHIFT));
     if (((!ImGui::GetIO().WantCaptureMouse && canvasRect().contains(mouse.x, mouse.y)) || drag_ == Drag::Stroke) &&
@@ -2191,6 +2195,8 @@ void App::drawImageTo3D() {
 // The Splats palette (it comes into the right tray by itself when splats arrive, see drawShell).
 void App::drawPalette_Splats() {
     if (doc_.splats.empty()) {
+        drawSplatTrainSection(); // train one from a phone capture (PanelSplatTrain.cpp)
+        ImGui::Spacing();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
         ImGui::TextWrapped("Open or drop a .ply capture (Polycam, Luma, Postshot, Scaniverse...) to sculpt against it.");
         ImGui::PopStyleColor();
@@ -2222,6 +2228,7 @@ void App::drawPalette_Splats() {
     if (ImGui::Button("Save splats...", ImVec2(half, 0))) saveFileDialog(FileAction::SaveSplats);
     ImGui::SameLine();
     if (ImGui::Button("Clear##splats", ImVec2(half, 0))) runCommand("splat_clear");
+    drawSplatTrainSection();
 }
 
 void App::drawBrushCursor() {

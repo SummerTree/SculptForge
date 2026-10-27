@@ -155,6 +155,9 @@ Ranked by what sculptors cite most on the ZBrush, Polycount, Blender and Mudbox 
 - ✅ Live face: `face_weights` (partial updates, no undo), takes played and baked to glTF animation / USD time samples
 - 📋 Next for faces: FBX blend-shape animation, take animation over the Blender bridge, an image-based landmark
   detector, corrective combination shapes, eye rotations as bones for rigs that want them
+- ✅ Splat training from a phone video or photos with a live viewport preview (Brush, downloaded on request;
+  COLMAP camera positions, or the phone's AR poses; sharpest-frame selection; Good enough - stop / Cancel)
+- 📋 Splat training: background masking of the capture, resume a stopped training, a Brush build for Linux ARM
 
 ## Phase 3 — AI assistant, beyond brushes
 

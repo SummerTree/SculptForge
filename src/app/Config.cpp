@@ -365,6 +365,7 @@ void App::initActions() {
     registerGizmoActions();     // Q W E R: Draw, and the Gizmo 3D's Move, Scale, Rotate (Gizmo.cpp)
     registerBakeUiActions();    // Tool > Bake (PanelBake.cpp)
     registerRetopoUiActions(); // Geometry > QRemesh, SubTool > ProjectAll (PanelRetopo.cpp)
+    registerSplatTrainUi();    // Splats > Train from capture (PanelSplatTrain.cpp)
     registerVdmActions();      // Brush > Vector Displacement (PanelVdm.cpp)
     registerFaceUiActions();   // Tool > Facial Shapes, face_take_play / face_take_stop (PanelFace.cpp)
     registerPerformanceUiActions(); // Preferences > Performance (PanelPerformance.cpp)

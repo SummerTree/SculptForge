@@ -33,6 +33,7 @@
 //   copy SRC DST             copy a file or folder (SRC relative to the script's folder, DST to the working
 //                            directory), e.g. to stage what another program would write (the Blender bridge)
 //   wait SECONDS / wait_idle [TIMEOUT] (AI requests, thumbnails, update checks and other background jobs) / wait_for LABEL [TIMEOUT]
+//   wait_value NAME OP N [TIMEOUT]  wait (real time, default 30 s) until expect_value NAME OP N would pass
 //   expect LABEL / expect_not LABEL
 //   expect_text TEXT / expect_no_text TEXT   any text drawn this frame contains TEXT
 //   expect_status TEXT       the status bar message contains TEXT
@@ -42,7 +43,7 @@
 //   click_subtool NAME [U V] left-click SubTool NAME in the viewport (with the held modifiers, e.g.
 //                            hold alt to select it); U V: fractions of its on-screen bounds
 //   expect_value NAME OP N   triangles, vertices, layers, brushes, masked, hidden, groups, colored,
-//                            can_undo, dirty, splats, show_polygroups, show_mask, wireframe,
+//                            can_undo, dirty, splats, show_polygroups, show_mask, show_mesh, wireframe,
 //                            subtools (count), active_subtool (index, 0 = top), visible_subtools,
 //                            edited_subtools (SubTools with undo history), user_brushes (brushes in the
 //                            user library), library_files (.sfbrush files in it; UI tests get an empty
@@ -85,6 +86,8 @@
 //                            center_x / center_y / center_z and size_x / size_y / size_z (active mesh bounds)
 //                            bake_running, baked_maps (maps in the last bake), bake_size, bake_files (files it wrote),
 //                            normal_map_preview (1 when the active SubTool shows its baked normal map)
+//                            splat_training (1 while a splat trains), splat_previews (checkpoints shown), splat_train_step,
+//                            splat_train_stage (4 done, 5 failed, 6 cancelled), splat_train_psnr, splat_train_prompt
 //   (mesh values are the active SubTool's)
 //   snapshot                 remember the active mesh's vertices (for the moved* values)
 //   remember VALUE NAME      keep VALUE's current value as $NAME
@@ -261,6 +264,7 @@ double Demo::query(const std::string& name, bool& known) const {
     if (name == "active_texture_layer") return hasTexture(m) && !m.texture->layers.empty() ? double(m.texture->activeLayer) : -1.0;
     if (name == "auto_uv_running") return app_.autoUv_ ? 1.0 : 0.0;
     if (const double v = app_.bakeTestValue(name); !std::isnan(v)) return v;
+    if (const double v = app_.splatTrainTestValue(name); !std::isnan(v)) return v; // splat_training, ...
     if (name == "qremesh_running") return app_.qremesh_ ? 1.0 : 0.0;
     if (name == "qremesh_guides") return double(app_.doc_.qremeshGuides.size());
     if (name == "qremesh_guide_loops") {
@@ -328,6 +332,7 @@ double Demo::query(const std::string& name, bool& known) const {
     if (name == "splats") return double(app_.doc_.splats.size());
     if (name == "show_polygroups") return app_.renderSettings_.showPolygroups ? 1.0 : 0.0;
     if (name == "show_mask") return app_.renderSettings_.showMask ? 1.0 : 0.0;
+    if (name == "show_mesh") return app_.renderSettings_.showMesh ? 1.0 : 0.0;
     if (name == "wireframe") return app_.renderSettings_.wireframe ? 1.0 : 0.0;
     if (name == "shelves") return app_.layout_.shelvesVisible ? 1.0 : 0.0;
     if (name == "left_tray") return app_.layout_.leftTrayOpen ? double(app_.layout_.leftTray.size()) : -1.0;
@@ -861,7 +866,8 @@ bool Demo::parseStep(int line, const std::vector<std::string>& w, std::string& e
             const bool idle = !busy(app_.pendingBrush_) && !busy(app_.pendingGenerator_) && !busy(app_.pendingModels_) &&
                               !busy(app_.pendingUnreal_) && !busy(app_.pendingComfyCheck_) && !app_.galleryBusy() &&
                               !app_.thumbs_.busy() && !app_.libraryScanner_.busy() && !app_.autoUv_ &&
-                              !app_.bakeBusy() && !app_.qremesh_ && !app_.voxelRemesh_ && !app_.updateJob_;
+                              !app_.bakeBusy() && !app_.qremesh_ && !app_.voxelRemesh_ && !app_.updateJob_ &&
+                              !app_.splatTrainBusy();
             *idleFrames = idle ? *idleFrames + 1 : 0;
             if (*idleFrames >= 4) return true;
             if (idle) return false;
@@ -961,6 +967,25 @@ bool Demo::parseStep(int line, const std::vector<std::string>& w, std::string& e
             bool k = false;
             const double v = query(name, k);
             if (!compare(v, op, want)) fail(line, name + " is " + number(v) + ", expected " + op + " " + number(want) + " (" + wantText + ")");
+        });
+    } else if (verb == "wait_value") { // wait (in real time) until a value holds, e.g. a background job's progress
+        if (!need(3)) return false;
+        bool known = false;
+        query(w[1], known);
+        if (!known) {
+            error = "unknown value '" + w[1] + "'";
+            return false;
+        }
+        const std::string name = w[1], op = w[2];
+        const double want = std::strtod(w[3].c_str(), nullptr);
+        const float timeout = num(4, 30.0f);
+        steps_.push_back([this, line, name, op, want, timeout](float t) {
+            bool k = false;
+            const double v = query(name, k);
+            if (compare(v, op, want)) return true;
+            SDL_Delay(10);
+            if (t > timeout) fail(line, name + " is " + number(v) + ", still not " + op + " " + number(want) + " after " + number(timeout) + " s");
+            return t > timeout;
         });
     } else if (verb == "expect_guide") {
         if (!need(1)) return false;

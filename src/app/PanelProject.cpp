@@ -6,6 +6,7 @@
 // Recent and autosave with crash recovery. Prompts only appear in interactive
 // sessions; --render, --record and demos run straight through.
 #include "app/App.h"
+#include "core/SplatCapture.h"
 #include "app/Ui.h"
 
 #include "ai/Http.h"
@@ -366,6 +367,10 @@ void App::openPathConfirmed(const std::string& path) {
     // Images go to the Image to 3D panel and brushes into the library: no scene change.
     std::string ext = fsPath(path).extension().string();
     for (auto& c : ext) c = char(std::tolower(static_cast<unsigned char>(c)));
+    if (capture::isVideoFile(path)) { // a phone video of an object: train a splat from it (PanelSplatTrain.cpp)
+        runCommand("splat_train", {{"source", path}});
+        return;
+    }
     if (Image::isImagePath(path) || ext == ".sfbrush" || ext == ".exr" || ext == ".sfvdm") openPath(path);
     else confirmDiscard([this, path] { openPath(path); });
 }

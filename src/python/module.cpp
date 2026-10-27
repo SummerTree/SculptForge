@@ -11,6 +11,7 @@
 //   verts, tris = doc.vertices, doc.triangles      # (N, 3) float32, (M, 3) uint32
 //   doc.mask, doc.colors, doc.polygroups           # optional attributes, None when absent
 #include "ai/AiCommands.h"
+#include "ai/SplatTrainer.h"
 #include "core/BrushLibrary.h"
 #include "core/Commands.h"
 #include "core/Script.h"
@@ -31,6 +32,7 @@ const CommandRegistry& registry() {
     static CommandRegistry r = [] {
         CommandRegistry reg;
         ai::registerAiCommands(reg, [] { return ai::AiSettings::load(ai::defaultAiSettingsPath()); });
+        ai::registerSplatTrainCommands(reg, [] { return ai::SplatTrainSettings::load(ai::defaultSplatTrainSettingsPath()); });
         return reg;
     }();
     return r;

@@ -7,6 +7,8 @@ three.
 
 ![A splat capture loaded next to the sculpt, with the Splats palette in the right tray](images/splats.jpg)
 
+To make a splat yourself from a phone video or photos, see [Scan an object into a splat](scan-to-splat.md).
+
 ## Supported files
 
 | Format | Open | Save |

@@ -22,6 +22,17 @@ All notable changes to SculptForge are listed here. The format follows
 - Blender bridge: sculpt layers arrive as shape keys with their names and weights (a `.shapes` file beside each
   .GoZ, which now holds the base shape when the mesh has layers).
 - UI tests: `zoom` and `look` steps; `run` expands `$SCRIPT_DIR`.
+- Splat training from captures (Splats > Train from capture): a phone video, a folder of photos, a phone-link
+  capture or a COLMAP / nerfstudio dataset becomes a Gaussian splat that appears in the viewport after the first
+  checkpoint and sharpens while it trains (worker thread; orbit freely). Progress over the canvas: step, PSNR,
+  elapsed and remaining time, Good enough - stop, Cancel. Presets Fast preview and Quality. Uses Brush 0.3.0
+  (Apache-2.0, WebGPU: NVIDIA, AMD, Intel, Apple), downloaded on request from its GitHub release with a pinned
+  SHA-256, or a path / `SCULPTFORGE_BRUSH`; COLMAP (BSD; downloaded on request on Windows) for camera positions,
+  skipped for captures with AR poses in `capture.json`; ffmpeg for video, keeping the sharpest frame of each
+  stretch. The result is centred and levelled from the camera positions, saved next to the capture and copied to
+  the LightBox Splats tab. Dropping a video onto the window trains it. Commands `splat_train` and
+  `splat_train_cancel` (blocking in sculptforge-cli, Python and MCP). Guide chapter "Scan an object into a splat";
+  a generated CC0 test capture (tools/splat/make_test_capture.py, tests/data/splat_capture).
 - "Fixes & suggestions" in the LightBox header (shown at startup) and the Help menu: opens the bug report and
   feature request forms on GitHub.
 
