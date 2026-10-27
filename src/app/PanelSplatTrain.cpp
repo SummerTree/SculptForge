@@ -85,6 +85,8 @@ struct SplatTrainUi {
     std::shared_ptr<std::string> downloadError = std::make_shared<std::string>();
     const ai::ToolDownload* downloading = nullptr;
 
+    ~SplatTrainUi() { downloadCancel->store(true); } // quitting stops a download (the job stops itself)
+
     void findTools() {
         brush = ai::findBrush(settings);
         colmap = ai::findColmap(settings);
