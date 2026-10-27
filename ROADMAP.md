@@ -147,6 +147,19 @@ Ranked by what sculptors cite most on the ZBrush, Polycount, Blender and Mudbox 
   Nostril, Create VDM from a VDM plane, Blender-compatible OpenEXR in and out
 - ✅ Blender add-on: ZBrush-style keys in Sculpt Mode (a preference)
 
+## In progress for v0.9 — maquette to performance: phone link
+
+- ✅ File > Capture from phone: QR pairing (or a 6-digit code), LAN only, only while the window is open
+- ✅ Capture page on the phone (no app): scan video or photo burst with coaching, one photo to 3D, splat .ply from
+  Scaniverse / Polycam / Luma; resumable chunked uploads into the Captures inbox with capture.json
+- ✅ View in AR on the desk: USDZ (AR Quick Look) and GLB (Scene Viewer), decimated, colour baked, re-exported
+  after strokes
+- ✅ Live face feed: MediaPipe on the phone, 52 ARKit weights + head rotation over a WebRTC data channel
+  (libdatachannel, optional at build time), face takes as JSON Lines
+- 📋 Play back and export face takes (with the facs feature); in-page video recording with live coaching where the
+  page is secure; a QR code back from the phone for networks without internet
+- 📋 Move the face page to sculptforge.app once its DNS is set up (one constant: kPhoneLinkSiteUrl)
+
 ## Phase 3 — AI assistant, beyond brushes
 
 - 📋 Chat assistant that drives any SculptForge command (tool calling over the existing registry)

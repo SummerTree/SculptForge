@@ -7,6 +7,19 @@ All notable changes to SculptForge are listed here. The format follows
 ## [Unreleased]
 
 ### Added
+- **Capture from phone** (File > Capture from phone, or the phone button in the LightBox; guide chapter "Phone capture
+  and AR", design in docs/phone-link.md): scan the QR code and the phone's browser becomes SculptForge's camera,
+  with no app and no account. Send a scan video or a photo burst (with coaching; for splat training), one photo
+  (to Image to 3D), or a splat .ply from Scaniverse, Polycam or Luma; uploads are chunked and resume after Wi-Fi
+  drops, and land in `<library>/Captures/<date_time>-<kind>/` with a `capture.json`. **View in AR** shows the
+  active SubTool or the scene on your desk (USDZ for iPhone AR Quick Look, GLB for Android Scene Viewer; reduced to
+  80k triangles, polypaint and textures baked, re-exported after strokes). **Face capture** tracks 52 ARKit
+  expressions and the head on the phone (MediaPipe Face Landmarker) and streams them to SculptForge at about 30 fps
+  over a WebRTC data channel, for `face_weights`; **Record face take** saves them as JSON Lines. LAN only, a new
+  token per session, size limits, safe file names; nothing listens while the window is closed.
+- Build: WebRTC through libdatachannel (MPL-2.0) and Mbed TLS (Apache-2.0), fetched and linked statically;
+  `-DSCULPTFORGE_WEBRTC=OFF` builds without the live face feed.
+- Website: the face capture page (`website/link/`), which needs HTTPS for the phone's camera.
 - "Fixes & suggestions" in the LightBox header (shown at startup) and the Help menu: opens the bug report and
   feature request forms on GitHub.
 

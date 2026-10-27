@@ -5,6 +5,15 @@ chapter opens by itself the first time you start a new version; you can always f
 **Help > What's New**. Every detail is in the
 [changelog](https://github.com/islandmed/SculptForge/blob/main/CHANGELOG.md).
 
+## Next version (in development)
+
+### Your phone as SculptForge's camera
+
+**File > Capture from phone** shows a QR code: scan it and your phone's browser can send SculptForge a scan (walk
+round an object for 20 to 60 seconds), a photo to turn into a model, or a splat file from a scanning app. Tap
+**View in AR** to see your sculpt standing on your desk, updated as you sculpt, and **Face capture** to drive a
+character's facial shapes with your own face, live. No app to install. See [Phone capture and AR](phone-capture.md).
+
 ## Version 0.8.1
 
 Fixes from a ZBrush artist's testing, and a way to bring your ZTools over.

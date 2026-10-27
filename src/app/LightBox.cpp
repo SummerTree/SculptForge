@@ -619,7 +619,7 @@ void LightBox::drawHeader(App& app, float width) {
         const float saveW =
             quickTab ? buttonW(compact ? ICON_LC_SAVE : ICON_LC_SAVE "  Save now") + 8.0f * scale : 0.0f;
         const float folderW = buttonW(compact ? ICON_LC_FOLDER_PLUS : ICON_LC_FOLDER_PLUS "  Open folder...") +
-                              buttonW(compact ? ICON_LC_SMARTPHONE : ICON_LC_SMARTPHONE "  From phone") + 8.0f * scale;
+                              buttonW(ICON_LC_SMARTPHONE) + 8.0f * scale;
         const float feedbackW =
             buttonW(compactFeedback ? ICON_LC_MESSAGE_SQUARE_PLUS : ICON_LC_MESSAGE_SQUARE_PLUS "  Fixes & suggestions");
         return saveW + filterW + rowsW + folderW + feedbackW + closeW + 4 * 8.0f * scale;
@@ -652,8 +652,8 @@ void LightBox::drawHeader(App& app, float width) {
     }
     ImGui::SameLine(0, 8 * scale);
     // The phone link (PanelPhone.cpp): scans, photos and splats from the phone land in the library's Captures.
-    if (ImGui::Button(compact ? ICON_LC_SMARTPHONE "###From phone" : ICON_LC_SMARTPHONE "  From phone###From phone"))
-        app.actions_.find("file.capture_phone")->run();
+    if (ImGui::Button(ICON_LC_SMARTPHONE "###From phone")) app.actions_.find("file.capture_phone")->run();
+    ui::DelayedTooltip("Capture from phone");
     ui::HelpAction(app, "file.capture_phone");
     ImGui::SameLine(0, 8 * scale);
     if (ImGui::Button(compact ? ICON_LC_FOLDER_PLUS "###Open folder"

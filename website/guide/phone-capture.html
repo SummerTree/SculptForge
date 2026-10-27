@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phone capture and AR - SculptForge User Guide</title>
+  <meta name="description" content="Your phone becomes SculptForge&#x27;s camera and second screen. Scan an object by walking around it, send a photo to turn into a model, bring in a splat from a scanning app, look at your sculpt standing on your real desk in AR, and drive a character&#x27;s face with your own. There is no app to install and no">
+  <meta name="theme-color" content="#111114">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" type="image/svg+xml" href="../img/favicon.svg?v=2">
+  <link rel="icon" type="image/png" href="../img/favicon-64.png?v=2">
+  <link rel="apple-touch-icon" href="../img/icon-256.png?v=2">
+  <link rel="canonical" href="https://islandmed.github.io/SculptForge/guide/phone-capture.html">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Phone capture and AR - SculptForge User Guide">
+  <meta property="og:description" content="Your phone becomes SculptForge&#x27;s camera and second screen. Scan an object by walking around it, send a photo to turn into a model, bring in a splat from a scanning app, look at your sculpt standing on your real desk in AR, and drive a character&#x27;s face with your own. There is no app to install and no">
+  <meta property="og:image" content="https://islandmed.github.io/SculptForge/img/social-preview.png?v=3">
+  <meta property="og:url" content="https://islandmed.github.io/SculptForge/guide/phone-capture.html">
+  <link rel="stylesheet" href="../style.css?v=17">
+  <script src="../motion.js?v=10" defer></script>
+  <script data-goatcounter="https://sculptforge.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+  <script src="search-index.js?v=32" defer></script>
+</head>
+<body class="guide-page" data-prev="splats.html" data-next="baking.html">
+  <div class="scroll-progress" aria-hidden="true"></div>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="../index.html"><img src="../img/logo.svg?v=2" alt="" width="34" height="34"><span>SculptForge</span></a>
+      <nav aria-label="Main">
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#demos">Demos</a>
+        <a href="../brushes.html">Brushes</a>
+        <a href="index.html" aria-current="page">Guide</a>
+        <a class="nav-dl" href="../index.html#download">Download</a>
+        <a class="gh" href="https://github.com/islandmed/SculptForge">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <div class="wrap guide-layout">
+    <div class="guide-side">
+      <button class="toc-toggle" type="button" aria-expanded="false" aria-controls="guide-toc">
+        <span>Contents</span><span class="toc-current">Phone capture and AR</span></button>
+      <div id="guide-toc" class="toc-panel">
+        <div class="guide-search" role="search">
+          <input type="search" id="guide-q" placeholder="Search the guide" aria-label="Search the guide" autocomplete="off">
+          <div class="search-results" id="guide-results" hidden></div>
+        </div>
+        <nav class="toc" aria-label="User guide"><a class="toc-home" href="index.html">Contents</a><p class="toc-group">Getting started</p><ul><li><a href="welcome.html">Welcome to SculptForge</a></li><li><a href="whats-new.html">What&#x27;s new</a></li><li><a href="coming-from-zbrush.html">Coming from ZBrush</a></li><li><a href="installing.html">Installing SculptForge</a></li><li><a href="interface.html">The interface</a></li><li><a href="navigation.html">Navigating the view</a></li></ul><p class="toc-group">Sculpting</p><ul><li><a href="sculpting.html">Sculpting and brushes</a></li><li><a href="brush-lab.html">Brush Lab and sharing brushes</a></li><li><a href="masking.html">Masking</a></li><li><a href="polygroups.html">Polygroups and visibility</a></li><li><a href="subtools.html">SubTools</a></li><li><a href="polypaint.html">Polypaint and materials</a></li><li><a href="texture-painting.html">Texture painting</a></li><li><a href="layers.html">Sculpt layers and blend shapes</a></li><li><a href="subdivision-levels.html">Subdivision levels</a></li><li><a href="dynamic-topology.html">Dynamic topology</a></li><li><a href="gizmo.html">Moving, rotating and posing (Gizmo 3D)</a></li><li><a href="geometry.html">Subdivide, remesh, decimate and LODs</a></li><li><a href="retopology.html">Quad retopology and detail projection</a></li></ul><p class="toc-group">AI and capture</p><ul><li><a href="generate-3d.html">Image and text to 3D</a></li><li><a href="splats.html">Gaussian splats</a></li><li><a href="phone-capture.html" class="current" aria-current="page">Phone capture and AR</a><ul class="toc-sections"><li><a href="#pair-your-phone">Pair your phone</a></li><li><a href="#scan-an-object">Scan an object</a></li><li><a href="#one-photo-to-3d">One photo to 3D</a></li><li><a href="#send-a-splat-file">Send a splat file</a></li><li><a href="#view-in-ar">View in AR</a></li><li><a href="#face-capture">Face capture</a></li><li><a href="#the-captures-folder">The Captures folder</a></li><li><a href="#privacy-and-security">Privacy and security</a></li></ul></li></ul><p class="toc-group">Files and pipelines</p><ul><li><a href="baking.html">Baking normal and displacement maps</a></li><li><a href="exporting.html">Exporting, Unreal and ZBrush</a></li><li><a href="blender.html">Working with Blender</a></li><li><a href="projects.html">Projects, autosave and QuickSave</a></li><li><a href="scripting.html">Scripting and automation</a></li><li><a href="studios.html">SculptForge for studios</a></li></ul><p class="toc-group">Reference</p><ul><li><a href="shortcuts.html">Keyboard and mouse</a></li><li><a href="performance.html">Performance and big meshes</a></li><li><a href="troubleshooting.html">Troubleshooting and FAQ</a></li><li><a href="glossary.html">Glossary</a></li></ul></nav>
+      </div>
+    </div>
+    <main class="guide-main" id="top">
+      <article class="guide-article">
+<h1 id="phone-capture-and-ar">Phone capture and AR</h1>
+<p>Your phone becomes SculptForge&#x27;s camera and second screen. Scan an object by walking around it, send a photo to turn into a model, bring in a splat from a scanning app, look at your sculpt standing on your real desk in AR, and drive a character&#x27;s face with your own. There is no app to install and no account: the phone&#x27;s browser talks to SculptForge over your Wi-Fi.</p>
+<h2 id="pair-your-phone">Pair your phone<a class="anchor" href="#pair-your-phone" aria-label="Link to this section">#</a></h2>
+<ol>
+<li>
+Choose <strong>File &gt; Capture from phone</strong> (or the phone button in the LightBox&#x27;s header). A window opens with a QR code.
+</li>
+<li>
+Point the phone&#x27;s camera at the QR code and tap the link it shows. The capture page opens, already paired with this window: the badge at its top shows your computer&#x27;s name.
+</li>
+</ol>
+<p>The phone and the computer must be on the same Wi-Fi. If the phone has no QR scanner, open the address shown under the code in its browser and type the 6-digit pairing code.</p>
+<p>The link works only while the window is open: closing it stops SculptForge listening, and the next time you open it there is a new code. A code nobody uses expires after 10 minutes.</p>
+<aside class="callout callout-tip"><p><strong>Tip:</strong> The phone can&#x27;t open the page? Check that it isn&#x27;t on a guest network or mobile data, turn off VPNs on both devices, and allow SculptForge through the firewall (Windows asks the first time; choose private networks). If the computer has several networks, pick the Wi-Fi one under <strong>Network</strong> in the window.</p></aside>
+<h2 id="scan-an-object">Scan an object<a class="anchor" href="#scan-an-object" aria-label="Link to this section">#</a></h2>
+<p>Tap <strong>Scan an object</strong>, read the tips, and tap <strong>Record a video</strong>. Walk slowly all the way round the object, then once more a little lower, for 20 to 60 seconds:</p>
+<ul>
+<li>
+slow and steady, no quick turns;
+</li>
+<li>
+soft, even light, without hard shadows or shiny reflections;
+</li>
+<li>
+the whole object in the middle of the screen, at about the same distance all the way (don&#x27;t zoom).
+</li>
+</ul>
+<p>You can also send a video you already took, or 20 to 200 photos (<strong>Choose photos</strong>). The page warns you when a video is very short or very long. Tap <strong>Send to SculptForge</strong>: the upload shows its progress on the phone and in SculptForge&#x27;s window.</p>
+<p>Big videos over shaky Wi-Fi are fine: the page sends them in pieces and carries on where it stopped if the connection drops. Keep the page open and the screen on until it says <strong>Sent</strong>.</p>
+<p>What arrives is saved in your library&#x27;s <strong>Captures</strong> folder (see below) and handed to splat training, which turns it into a Gaussian splat that sharpens in the viewport while it trains. See <a href="splats.html">Gaussian splats</a>.</p>
+<h2 id="one-photo-to-3d">One photo to 3D<a class="anchor" href="#one-photo-to-3d" aria-label="Link to this section">#</a></h2>
+<p>Tap <strong>One photo to 3D</strong> and take a photo (or choose one). One object, the whole of it in the picture, on a plain background works best. SculptForge loads it into <strong>Generate &gt; Image to 3D</strong> and starts generating with the service chosen there (free Hugging Face models by default). Turn off <strong>Generate from a photo at once</strong> in the window to check the photo first and press <strong>Generate</strong> yourself. See <a href="generate-3d.html">Image and text to 3D</a>.</p>
+<p>The phone sends large photos at about 2048 pixels, which is plenty and much faster.</p>
+<h2 id="send-a-splat-file">Send a splat file<a class="anchor" href="#send-a-splat-file" aria-label="Link to this section">#</a></h2>
+<p>Already scanned it with Scaniverse, Polycam or Luma? Export a Gaussian splat <code>.ply</code> from the app, tap <strong>Send a splat file</strong> and choose it. It opens next to your sculpt as a splat. A <code>.ply</code> that is a plain mesh becomes a new SubTool instead, so it never replaces your work.</p>
+<h2 id="view-in-ar">View in AR<a class="anchor" href="#view-in-ar" aria-label="Link to this section">#</a></h2>
+<p>Tap <strong>View in AR</strong>, choose what to show (the <strong>Active SubTool</strong> or the <strong>Whole scene</strong>) and how big it should be on the desk (10 cm to 1 m), then <strong>Get the model</strong>. SculptForge prepares a phone-friendly copy: reduced to about 80,000 triangles, its polypaint or texture baked into one texture, standing on its base. When it is ready, tap <strong>View in AR</strong> and point the phone at a desk or the floor.</p>
+<ul>
+<li>
+<strong>iPhone and iPad</strong> open it in AR Quick Look (a USDZ file).
+</li>
+<li>
+<strong>Android</strong> opens it in Google&#x27;s Scene Viewer (a GLB file; needs Google Play Services for AR). <strong>Download the model</strong> saves the file instead.
+</li>
+</ul>
+<p>Keep sculpting: while the phone is looking, every few seconds after a stroke SculptForge exports the model again and the page says <strong>Updated from your sculpt</strong>. Tap <strong>View in AR</strong> again to see the change. Turn off <strong>Update after each stroke</strong> in the window to stop that.</p>
+<h2 id="face-capture">Face capture<a class="anchor" href="#face-capture" aria-label="Link to this section">#</a></h2>
+<p>Tap <strong>Face capture</strong>, then <strong>Start face capture</strong>. Your phone&#x27;s front camera tracks your face with MediaPipe Face Landmarker, which runs on the phone: the video never leaves it. About 30 times a second only the 52 expression weights (the ARKit set: jawOpen, eyeBlinkLeft, mouthSmileRight...) and the head&#x27;s rotation go to SculptForge.</p>
+<p>Prop the phone up at eye level, about an arm&#x27;s length away, with light on your face. The window&#x27;s <strong>Face</strong> section shows a little face following yours and the frame rate.</p>
+<p>The weights drive the character&#x27;s facial shapes on the active SubTool (made with <strong>Generate facial shapes</strong>). If the character winks with the wrong eye, tick <strong>Mirror left and right</strong>.</p>
+<p><strong>Record face take</strong> records the feed until you press it again. Each take is saved in the Captures folder as <code>take.jsonl</code>: one line per frame with the 52 weights, the head rotation and the time, ready to play back or export.</p>
+<aside class="callout callout-note"><p><strong>Note:</strong> The camera only works on secure (HTTPS) pages, so the face page lives on the SculptForge website. The address it opens carries the connection details after a <code>#</code>, which browsers never send to the website. To set up the connection the phone sends one encrypted message through ntfy.sh, a free public relay that can&#x27;t read it; without internet, tap <strong>Connect without internet</strong> on the face page. After that the face data goes straight over your Wi-Fi.</p></aside>
+<h2 id="the-captures-folder">The Captures folder<a class="anchor" href="#the-captures-folder" aria-label="Link to this section">#</a></h2>
+<p>Everything the phone sends is saved in your library (the folder the LightBox shows, normally <code>Documents/SculptForge</code>), under <code>Captures</code>, one folder per capture:</p>
+<div class="code-block"><pre class="code"><code>Captures/2026-10-26_195803-splat/scan.mov
+Captures/2026-10-26_195803-splat/capture.json
+Captures/2026-10-26_201544-photo/IMG_0412.jpg
+Captures/2026-10-26_203012-face/take.jsonl</code></pre><button class="copy" type="button" aria-label="Copy">Copy</button></div>
+<p><code>capture.json</code> records the kind (<code>splat</code>, <code>photo</code>, <code>ply</code> or <code>face</code>), the device, the files and the times. The window&#x27;s <strong>Received</strong> list opens a capture&#x27;s folder.</p>
+<h2 id="privacy-and-security">Privacy and security<a class="anchor" href="#privacy-and-security" aria-label="Link to this section">#</a></h2>
+<ul>
+<li>
+Only devices on your local network can connect, and only while the window is open.
+</li>
+<li>
+Every request needs the session&#x27;s secret token (it is in the QR code) or the pairing code.
+</li>
+<li>
+Uploads have size limits (4 GB a file, 8 GB a capture), file names are cleaned, and files are written only inside the Captures folder.
+</li>
+<li>
+Nothing you capture is uploaded anywhere except to your computer. A photo goes on to the image-to-3D service you chose in SculptForge, as it does when you pick it yourself.
+</li>
+</ul>
+      </article>
+      <nav class="pager" aria-label="Previous and next chapter"><a class="prev" rel="prev" href="splats.html"><span>Previous</span>Gaussian splats</a><a class="next" rel="next" href="baking.html"><span>Next</span>Baking normal and displacement maps</a></nav>
+      <p class="guide-meta fine">Also in the app: <strong>Help &gt; User Guide</strong> (<kbd>Shift</kbd>+<kbd>F1</kbd>).
+        Found a mistake? <a href="https://github.com/islandmed/SculptForge/edit/main/docs/guide/phone-capture.md">Edit this page on GitHub</a>.</p>
+    </main>
+    <aside class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#pair-your-phone">Pair your phone</a></li><li><a href="#scan-an-object">Scan an object</a></li><li><a href="#one-photo-to-3d">One photo to 3D</a></li><li><a href="#send-a-splat-file">Send a splat file</a></li><li><a href="#view-in-ar">View in AR</a></li><li><a href="#face-capture">Face capture</a></li><li><a href="#the-captures-folder">The Captures folder</a></li><li><a href="#privacy-and-security">Privacy and security</a></li></ul></aside>
+  </div>
+  <footer class="footer">
+    <div class="wrap footer-grid">
+      <div>
+        <a class="brand" href="../index.html"><img src="../img/logo.svg?v=2" alt="" width="28" height="28"><span>SculptForge</span></a>
+        <p class="fine">Copyright © 2026 The SculptForge contributors.<br>The SculptForge User Guide is part of
+          SculptForge, licensed under the <a href="https://github.com/islandmed/SculptForge/blob/main/LICENSE">GNU GPL v3.0 or later</a>.</p>
+      </div>
+      <div class="links">
+        <a href="index.html">User guide</a>
+        <a href="https://github.com/islandmed/SculptForge">Source code</a>
+        <a href="https://github.com/islandmed/SculptForge/issues">Report a problem</a>
+        <a href="https://github.com/islandmed/SculptForge/blob/main/docs/ai-services.md">AI services &amp; privacy</a>
+      </div>
+      <p class="fine trademarks">SculptForge is an independent project, not affiliated with or endorsed by Maxon or
+        any other company named in this guide. ZBrush is a trademark of Maxon. All other trademarks belong to their
+        owners.</p>
+    </div>
+  </footer>
+</body>
+</html>
