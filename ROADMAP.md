@@ -147,6 +147,12 @@ Ranked by what sculptors cite most on the ZBrush, Polycount, Blender and Mudbox 
   Nostril, Create VDM from a VDM plane, Blender-compatible OpenEXR in and out
 - ✅ Blender add-on: ZBrush-style keys in Sculpt Mode (a preference)
 
+## In development (v0.9) — maquette to performance
+
+- ✅ Splat training from a phone video or photos with a live viewport preview (Brush, downloaded on request;
+  COLMAP camera positions, or the phone's AR poses; sharpest-frame selection; Good enough - stop / Cancel)
+- 📋 Splat training: background masking of the capture, resume a stopped training, a Brush build for Linux ARM
+
 ## Phase 3 — AI assistant, beyond brushes
 
 - 📋 Chat assistant that drives any SculptForge command (tool calling over the existing registry)

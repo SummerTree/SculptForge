@@ -40,6 +40,7 @@ You can read it inside SculptForge (**Help > User Guide**, or <kbd>Shift</kbd>+<
 
 20. [Image and text to 3D](generate-3d.md)
 21. [Gaussian splats](splats.md)
+22. [Scan an object into a splat](scan-to-splat.md)
 
 ## Files and pipelines
 

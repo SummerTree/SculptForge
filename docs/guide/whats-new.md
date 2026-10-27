@@ -5,6 +5,16 @@ chapter opens by itself the first time you start a new version; you can always f
 **Help > What's New**. Every detail is in the
 [changelog](https://github.com/islandmed/SculptForge/blob/main/CHANGELOG.md).
 
+## Next version (in development)
+
+### Scan an object into a splat
+
+Film an object with your phone, or take photos all around it, and SculptForge trains a Gaussian splat from it on
+your own graphics card. The splat appears in the viewport after a few hundred steps and sharpens while it trains;
+you can orbit around it, stop when it's good enough, or cancel. Pick **Video...** or **Photos Folder...** under
+**Splats > Train from capture**, or drop a video onto the window. The free Brush trainer is offered as a one-click
+download the first time. See [Scan an object into a splat](scan-to-splat.md).
+
 ## Version 0.8.1
 
 Fixes from a ZBrush artist's testing, and a way to bring your ZTools over.
