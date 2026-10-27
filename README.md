@@ -18,16 +18,16 @@
 </p>
 
 <p align="center">
-  <a href="https://islandmed.github.io/SculptForge/"><b>Website & demo videos</b></a> ·
+  <a href="https://sculptforge.app/"><b>Website & demo videos</b></a> ·
   <a href="https://github.com/islandmed/SculptForge/releases/latest"><b>Download</b></a> ·
-  <a href="https://islandmed.github.io/SculptForge/guide/"><b>User guide</b></a> ·
+  <a href="https://sculptforge.app/guide/"><b>User guide</b></a> ·
   <a href="#features">Features</a> ·
   <a href="#building">Build from source</a> ·
   <a href="CONTRIBUTING.md">Contribute</a>
 </p>
 
 <p align="center">
-  <a href="https://islandmed.github.io/SculptForge/#demos"><img src="docs/images/sculpt-demo.gif" width="800" alt="Weathering a detailed lion head with symmetry and turning it to stone in SculptForge"></a>
+  <a href="https://sculptforge.app/#demos"><img src="docs/images/sculpt-demo.gif" width="800" alt="Weathering a detailed lion head with symmetry and turning it to stone in SculptForge"></a>
 </p>
 
 SculptForge is a free, open-source alternative to ZBrush: a focused sculpting app with the brushes, symmetry and
@@ -77,7 +77,7 @@ files keep polygroups, mask and polypaint), as OBJ, FBX or GLB, or convert a ZTo
   brush picker (`B`, type letters to pick), hold-Ctrl help on every button, a command palette (F3) and a script
   console (`` ` ``), and a fully customizable layout with Store Config. See [docs/ui-design.md](docs/ui-design.md).
 - A built-in **user guide** (Help > User Guide, Shift+F1) with search, also on the
-  [website](https://islandmed.github.io/SculptForge/guide/); hold Ctrl over any control and press F1 to open its
+  [website](https://sculptforge.app/guide/); hold Ctrl over any control and press F1 to open its
   chapter. Source: [docs/guide](docs/guide/index.md).
 
 **Sculpting**
@@ -109,7 +109,7 @@ files keep polygroups, mask and polypaint), as OBJ, FBX or GLB, or convert a ZTo
   code), with every value exposed as a slider. They're kept in your brush library; share them as
   `.sfbrush` files or one-line brush codes (right-click > Copy brush code, Ctrl+V to paste one). Studios share
   a folder through `SCULPTFORGE_BRUSH_PATH`, and the
-  [community gallery](https://islandmed.github.io/SculptForge/brushes.html) installs brushes in one click
+  [community gallery](https://sculptforge.app/brushes.html) installs brushes in one click
   (Brush > Community brushes). See [docs/brushes.md](docs/brushes.md).
 - **Free out of the box**: no account or key. It uses an open model (GPT-OSS 20B) hosted by Pollinations.ai,
   and falls back to a local Ollama when you're offline.
@@ -263,7 +263,7 @@ argument `--mcp`. The agent gets every command as a tool and works on one live s
 
 ## Controls
 
-The [user guide](https://islandmed.github.io/SculptForge/guide/shortcuts.html) has the full list (it's also in the
+The [user guide](https://sculptforge.app/guide/shortcuts.html) has the full list (it's also in the
 app: F1 for Controls, Shift+F1 for the guide).
 
 | Action | Input |

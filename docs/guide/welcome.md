@@ -93,7 +93,7 @@ and links between chapters. Two other kinds of help are always a keystroke away:
 ([github.com/islandmed/SculptForge/issues](https://github.com/islandmed/SculptForge/issues)). Include your
 operating system, your graphics card and what you did just before the problem; see [Troubleshooting and
 FAQ](troubleshooting.md) for what else helps. **Help > Website & documentation** opens the [SculptForge
-website](https://islandmed.github.io/SculptForge/).
+website](https://sculptforge.app/).
 
 ## See also
 

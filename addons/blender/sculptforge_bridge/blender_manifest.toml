@@ -6,7 +6,7 @@ name = "SculptForge Bridge"
 tagline = "Send meshes to SculptForge and back, updated in place like GoZ"
 maintainer = "SculptForge contributors"
 type = "add-on"
-website = "https://islandmed.github.io/SculptForge/guide/blender.html"
+website = "https://sculptforge.app/guide/blender.html"
 tags = ["Import-Export", "Sculpt"]
 
 blender_version_min = "4.2.0"

@@ -73,7 +73,7 @@ GitHub repository of CC0 brushes with matching preview images. Browse it:
 
 - **In the app:** *View > Community brushes*. Search, filter by tag, click **Install**. The index and previews
   are cached, so the window still opens offline (with a notice); brushes you installed always work.
-- **On the web:** <https://islandmed.github.io/SculptForge/brushes.html>.
+- **On the web:** <https://sculptforge.app/brushes.html>.
 - **From scripts and AI agents:**
 
   ```sh

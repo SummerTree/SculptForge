@@ -11,6 +11,8 @@ All notable changes to SculptForge are listed here. The format follows
   feature request forms on GitHub.
 
 ### Changed
+- The website moved to https://sculptforge.app (old islandmed.github.io/SculptForge links redirect). The
+  app, update check, user guide, packages and Blender add-on link there.
 - Website: the tagline now reads "the free, open-source alternative to ZBrush and Mudbox".
 
 ## [0.8.1] - 2026-10-25

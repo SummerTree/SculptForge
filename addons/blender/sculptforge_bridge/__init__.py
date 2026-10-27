@@ -19,7 +19,7 @@ bl_info = {  # legacy add-on install (Blender 4.2+ reads blender_manifest.toml i
     "blender": (4, 2, 0),
     "location": "3D View > Sidebar > SculptForge, Object menu, File > Import / Export",
     "description": "Send meshes to SculptForge and back, updating the objects in place (like GoZ)",
-    "doc_url": "https://islandmed.github.io/SculptForge/guide/blender.html",
+    "doc_url": "https://sculptforge.app/guide/blender.html",
     "category": "Import-Export",
 }
 

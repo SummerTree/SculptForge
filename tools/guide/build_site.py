@@ -23,7 +23,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SRC = ROOT / "docs" / "guide"
-SITE = "https://islandmed.github.io/SculptForge/"
+SITE = "https://sculptforge.app/"
 CALLOUTS = {"tip": "Tip", "note": "Note", "zbrush": "ZBrush", "not-yet": "Not yet", "warning": "Warning",
             "important": "Important"}
 

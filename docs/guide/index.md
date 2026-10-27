@@ -6,7 +6,7 @@ and how to get your work into a game engine, a film pipeline, Blender or ZBrush.
 0.4.
 
 You can read it inside SculptForge (**Help > User Guide**, or <kbd>Shift</kbd>+<kbd>F1</kbd>) or on the
-[SculptForge website](https://islandmed.github.io/SculptForge/guide/). If you're coming from ZBrush, start with
+[SculptForge website](https://sculptforge.app/guide/). If you're coming from ZBrush, start with
 [Coming from ZBrush](coming-from-zbrush.md) and keep the [Glossary](glossary.md) at hand: ZBrush's keys and gestures work as they are.
 
 ![The SculptForge window with its main regions labelled](images/interface-overview.jpg)

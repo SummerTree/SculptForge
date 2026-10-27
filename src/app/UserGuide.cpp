@@ -44,7 +44,7 @@ using guide::BlockKind;
 using guide::Span;
 using guide::Spans;
 
-constexpr const char* kWebsite = "https://islandmed.github.io/SculptForge/guide/";
+constexpr const char* kWebsite = "https://sculptforge.app/guide/";
 
 // Colours of the page (on the panel background).
 constexpr ImU32 kText = IM_COL32(0xd2, 0xd2, 0xd4, 0xff);

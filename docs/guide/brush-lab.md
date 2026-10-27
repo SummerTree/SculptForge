@@ -205,7 +205,7 @@ visit. **Refresh** fetches the latest list. **Share yours** opens the gallery's 
 submit a brush you saved as `.sfbrush` with a pull request.
 
 You can also browse the gallery on the website at
-[islandmed.github.io/SculptForge/brushes.html](https://islandmed.github.io/SculptForge/brushes.html).
+[sculptforge.app/brushes.html](https://sculptforge.app/brushes.html).
 
 Studios can mirror the gallery or run their own. Enter a URL or folder in the **Gallery** field at the bottom
 of the window and click **Use**, or set `SCULPTFORGE_BRUSH_GALLERY` (which then takes precedence and hides the

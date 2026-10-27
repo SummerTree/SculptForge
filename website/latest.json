@@ -1,7 +1,7 @@
 {
   "version": "0.8.1",
-  "download": "https://islandmed.github.io/SculptForge/#download",
-  "notes": "https://islandmed.github.io/SculptForge/guide/whats-new.html",
+  "download": "https://sculptforge.app/#download",
+  "notes": "https://sculptforge.app/guide/whats-new.html",
   "highlights": [
     "Bring your ZTools over: a free ZBrush plug-in converts them, then SculptForge opens the .ZTL",
     "Hold Ctrl for the mask brushes (MaskLasso, MaskRect) and Ctrl+Shift for SelectRect / SelectLasso, as in ZBrush",

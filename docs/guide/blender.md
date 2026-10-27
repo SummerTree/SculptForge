@@ -9,7 +9,7 @@ It works like GoZ between ZBrush and other apps, on Linux, Windows and macOS, wi
 
 1. Download `sculptforge_bridge.zip` from the
    [latest release](https://github.com/islandmed/SculptForge/releases/latest/download/sculptforge_bridge.zip)
-   (or the [SculptForge website](https://islandmed.github.io/SculptForge/)).
+   (or the [SculptForge website](https://sculptforge.app/)).
 2. In Blender choose **Edit > Preferences > Get Extensions**, open the menu at the top right and choose
    **Install from Disk...**, then pick the zip. (You can also drag the zip into Blender's window.)
 3. The **SculptForge** tab appears in the 3D View's sidebar (press <kbd>N</kbd>). Send and Receive are also in the

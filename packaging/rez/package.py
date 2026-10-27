@@ -11,7 +11,7 @@ description = "Free, open-source digital sculpting with game and animation pipel
 
 authors = ["The SculptForge contributors"]
 
-help = [["Website", "https://islandmed.github.io/SculptForge/"], ["Docs", "https://github.com/islandmed/SculptForge#readme"]]
+help = [["Website", "https://sculptforge.app/"], ["Docs", "https://github.com/islandmed/SculptForge#readme"]]
 
 tools = ["sculptforge", "sculptforge-cli"]
 

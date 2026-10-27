@@ -6,7 +6,7 @@ alternative to ZBrush, shared by the people who made them. Every brush here is p
 
 **Install brushes from inside SculptForge:** *View > Community brushes*, pick one, click **Install**. You can
 also download any `.sfbrush` file from [`brushes/`](brushes) and drag it onto the SculptForge window.
-Browse the gallery with previews at <https://islandmed.github.io/SculptForge/brushes.html>.
+Browse the gallery with previews at <https://sculptforge.app/brushes.html>.
 
 ## What a brush is
 
