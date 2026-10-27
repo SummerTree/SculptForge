@@ -5,6 +5,24 @@ chapter opens by itself the first time you start a new version; you can always f
 **Help > What's New**. Every detail is in the
 [changelog](https://github.com/islandmed/SculptForge/blob/main/CHANGELOG.md).
 
+## Version 0.9.1
+
+Fixes from the first day of 0.9.
+
+### Phone capture: when the phone can't open the page
+
+Recent versions of Chrome on Android can refuse to open any address on your home network and just say **This
+site can't be reached**. The **Capture from phone** window now says so and suggests Firefox, and its **The phone
+can't open the page?** list covers Linux firewalls too. See [Phone capture and AR](phone-capture.md).
+
+### Easier to read
+
+This guide, including What's New, and the update banner now use larger text.
+
+### Baking
+
+**Cancel** now stops small bakes too.
+
 ## Version 0.9.0
 
 Maquette to performance: scan an object or a clay maquette with your phone, turn the scan into a clean mesh you

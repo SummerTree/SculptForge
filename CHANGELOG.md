@@ -6,6 +6,10 @@ All notable changes to SculptForge are listed here. The format follows
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-10-27
+
+Help for phone capture when the phone can't open the page, and bigger text in the guide and the update banner.
+
 ### Changed
 - Easier reading: the User Guide (and its What's New chapter) and the update banner use 17 px text instead of
   the 15 px interface font, with larger headings.
@@ -787,7 +791,8 @@ First public release.
 - Rez package (`packaging/rez`).
 - Headless thumbnail/turntable rendering and scripted demo recording.
 
-[Unreleased]: https://github.com/islandmed/SculptForge/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/islandmed/SculptForge/compare/v0.9.1...HEAD
+[0.9.1]: https://github.com/islandmed/SculptForge/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/islandmed/SculptForge/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/islandmed/SculptForge/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/islandmed/SculptForge/compare/v0.7.0...v0.8.0
