@@ -81,7 +81,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 const note = (el, text, kind) => { el.innerHTML = text ? `<div class="note ${kind || ""}">${text}</div>` : ""; };
 const setConn = (state, text) => { $("conn").className = "pill " + state; $("connText").textContent = text; };
 
-// Connection details: #v=1&k=token&d=desktop&o=offer&n=name&x=key&r=relay (from the desktop's capture page), or
+// Connection details: #v=1&k=token&d=desktop&o=offer&n=name&x=key&r=relay&r=relay... (from the desktop's capture page), or
 // ?k=token when SculptForge serves this page itself at /face.
 const frag = new URLSearchParams(location.hash.slice(1));
 const query = new URLSearchParams(location.search);
@@ -159,8 +159,10 @@ async function connectRtc() {
     return true;
   };
   // The answer goes back through the relay, encrypted with the key from the fragment (the relay can't read it).
-  const relay = frag.get("r");
-  if (relay) {
+  // Several relays (ours, then ntfy.sh): the first that takes the message wins; the desktop polls them all.
+  const relays = frag.getAll("r");
+  if (relays.length) {
+    let sent = false;
     try {
       const key = await crypto.subtle.importKey("raw", b64u.dec(frag.get("x")), "AES-GCM", false, ["encrypt"]);
       const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -168,13 +170,20 @@ async function connectRtc() {
       const cipher = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plain));
       const packed = new Uint8Array(iv.length + cipher.length);
       packed.set(iv); packed.set(cipher, iv.length);
-      await fetch(relay, { method: "POST", body: b64u.enc(packed) });
-    } catch (e) {
-      note($("liveMsg"), "No internet to set up the connection: tap Connect without internet.", "");
-    }
+      for (const relay of relays) {
+        try {
+          const ctl = new AbortController();
+          const timer = setTimeout(() => ctl.abort(), 5000);
+          const r = await fetch(relay, { method: "POST", body: b64u.enc(packed), signal: ctl.signal });
+          clearTimeout(timer);
+          if (r.ok) { sent = true; break; }
+        } catch (e) { /* unreachable: try the next one */ }
+      }
+    } catch (e) { /* no Web Crypto: only the direct way is left */ }
+    if (!sent) note($("liveMsg"), "No internet to set up the connection: tap Connect without internet.", "");
   }
   // Without internet (or if the relay is slow): a tab on the computer's own page delivers the answer.
-  setTimeout(() => { if (!channel || channel.readyState !== "open") $("direct").classList.remove("hidden"); }, relay ? 6000 : 0);
+  setTimeout(() => { if (!channel || channel.readyState !== "open") $("direct").classList.remove("hidden"); }, relays.length ? 6000 : 0);
 }
 
 $("direct").onclick = () => {

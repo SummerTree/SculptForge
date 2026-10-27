@@ -87,9 +87,9 @@ If the character winks with the wrong eye, tick **Mirror left and right**.
 
 > **Note:** The camera only works on secure (HTTPS) pages, so the face page lives on the SculptForge website. The
 > address it opens carries the connection details after a `#`, which browsers never send to the website. To set up
-> the connection the phone sends one encrypted message through ntfy.sh, a free public relay that can't read it;
-> without internet, tap **Connect without internet** on the face page. After that the face data goes straight over
-> your Wi-Fi.
+> the connection the phone sends one encrypted message through SculptForge's relay (or ntfy.sh, a free public
+> relay, if ours can't be reached); neither can read it. Without internet, tap **Connect without internet** on the
+> face page. After that the face data goes straight over your Wi-Fi.
 
 ## The Captures folder
 

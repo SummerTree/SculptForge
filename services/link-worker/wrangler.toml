@@ -1,0 +1,27 @@
+# SculptForge link relay (see README.md). Deploy: npx wrangler deploy  (from this folder, logged in to the
+# Cloudflare account that holds sculptforge.app). Free plan: SQLite-backed Durable Objects only, hence
+# new_sqlite_classes below.
+name = "sculptforge-link"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+# link.sculptforge.app, created and kept by Cloudflare as a custom domain of this Worker.
+routes = [
+  { pattern = "link.sculptforge.app", custom_domain = true },
+]
+
+[vars]
+# Pages allowed to post from a browser (the face page). Requests without an Origin (the desktop) are always allowed.
+ALLOWED_ORIGINS = "https://sculptforge.app,https://www.sculptforge.app,https://islandmed.github.io"
+
+[[durable_objects.bindings]]
+name = "TOPICS"
+class_name = "Topic"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Topic"]
+
+[observability]
+enabled = false   # nothing to log: the messages are ciphertext, and we keep no request logs

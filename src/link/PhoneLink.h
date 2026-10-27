@@ -38,9 +38,10 @@ class FaceRtc;
 // Where the face page lives (HTTPS, needed for the camera): our website. One constant; SCULPTFORGE_LINK_URL
 // overrides it (e.g. a local HTTPS test server).
 inline constexpr const char* kPhoneLinkSiteUrl = "https://islandmed.github.io/SculptForge/link/";
-// The relay that carries the phone's (encrypted) WebRTC answer when the desktop isn't reachable from the HTTPS
-// page; SCULPTFORGE_LINK_RELAY overrides it.
-inline constexpr const char* kPhoneLinkRelayUrl = "https://ntfy.sh/";
+// The relays that carry the phone's (encrypted) WebRTC answer, since the HTTPS page can't reach the desktop yet:
+// space-separated, tried in order. Ours first (services/link-worker, a Cloudflare Worker), ntfy.sh as the
+// fallback (same protocol). SCULPTFORGE_LINK_RELAY overrides the list.
+inline constexpr const char* kPhoneLinkRelayUrl = "https://link.sculptforge.app/relay/ https://ntfy.sh/";
 inline constexpr uint16_t kPhoneLinkPort = 8765;
 
 inline constexpr uint64_t kMaxCaptureFileBytes = 4ull << 30;  // one video or .ply
@@ -57,7 +58,8 @@ struct PhoneLinkOptions {
     std::string desktopName;      // shown on the phone ("Tony's PC")
     std::string version;          // SculptForge version, shown on the phone
     std::string siteUrl;          // face page; empty = kPhoneLinkSiteUrl (or SCULPTFORGE_LINK_URL)
-    std::string relayUrl;         // empty = kPhoneLinkRelayUrl (or SCULPTFORGE_LINK_RELAY); "off" = none
+    std::string relayUrl;         // empty = kPhoneLinkRelayUrl (or SCULPTFORGE_LINK_RELAY); "off" = none;
+                                  // space-separated URLs, each followed by the topic
     bool startServer = true;      // false: handle() only (unit tests)
 };
 
@@ -214,6 +216,7 @@ private:
     HttpResponse faceLink();
     HttpResponse directAnswer(const HttpRequest& request);
     void relayLoop(std::string topic, std::string key, int64_t sinceUnix);
+    std::vector<std::string> relayUrls() const;
     void stopRelay();
     void onFaceState(int state);
 

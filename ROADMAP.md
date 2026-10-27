@@ -159,6 +159,7 @@ Ranked by what sculptors cite most on the ZBrush, Polycount, Blender and Mudbox 
 - 📋 Play back and export face takes (with the facs feature); in-page video recording with live coaching where the
   page is secure; a QR code back from the phone for networks without internet
 - 📋 Move the face page to sculptforge.app once its DNS is set up (one constant: kPhoneLinkSiteUrl)
+- 📋 Deploy the link relay Worker (`services/link-worker`, link.sculptforge.app); then consider dropping ntfy.sh
 
 ## Phase 3 — AI assistant, beyond brushes
 

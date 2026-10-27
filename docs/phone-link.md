@@ -43,11 +43,19 @@ Phone browsers give `getUserMedia` (live camera) only to secure contexts: HTTPS 
      and answers with `https://.../link/#v=1&k=<token>&d=<desktop>&o=<offer>&x=<key>&r=<relay topic>`. Everything
      after `#` stays on the phone: browsers never send the fragment to the website. The page removes it from the
      address bar at once.
-   - **phone -> desktop**: the answer goes through **ntfy.sh** (a free, public, open-source pub/sub relay; CORS
-     open; no account), **encrypted with AES-256-GCM** under the key from the fragment and carrying the session
-     token, so the relay can neither read nor forge it. The desktop polls the topic (once every 1.5 s, at most 5
-     minutes, only while a face link is waiting) with the HTTPS client it already has (`ai::httpRequest`). Override
-     with `SCULPTFORGE_LINK_RELAY`; `off` disables it.
+   - **phone -> desktop**: the answer goes through a **relay**, **encrypted with AES-256-GCM** under the key from
+     the fragment and carrying the session token, so the relay can neither read nor forge it. The link lists the
+     relays in order (`&r=...&r=...`); the page posts to the first that takes it, and the desktop polls them all
+     (once every 1.5 s, at most 5 minutes, only while a face link is waiting) with the HTTPS client it already has
+     (`ai::httpRequest`). Default list (`kPhoneLinkRelayUrl`):
+     1. **`https://link.sculptforge.app/relay/`**: our own Cloudflare Worker (`services/link-worker`, free plan, a
+        Durable Object per topic, messages deleted after 10 minutes, at most 4 per topic, base64url only, browser
+        posts only from our pages, no logs). Source and deploy steps in its README; until it's deployed the name
+        doesn't resolve and both sides move straight on.
+     2. **`https://ntfy.sh/`**: a free, public, open-source pub/sub relay (CORS open, no account), the fallback.
+        The Worker speaks the same small part of its protocol (`POST /<topic>`, `GET /<topic>/json?poll=1&since=`).
+
+     `SCULPTFORGE_LINK_RELAY` overrides the list (space-separated); `off` disables relays.
    - **No internet?** The face page offers **Connect without internet**: it opens the desktop's own
      `/rtc-answer?a=<answer>` page in a new tab (a top-level navigation, which mixed-content rules allow), which
      hands over the answer and closes itself.
@@ -62,9 +70,11 @@ Phone browsers give `getUserMedia` (live camera) only to secure contexts: HTTPS 
    builds without it; the app then offers capture and AR, and says the face feed isn't available.
 
 Verified here: the unit test runs a full WebRTC handshake between the desktop code and a second libdatachannel
-peer (answer delivered through the encrypted relay path), and a real Chrome on this machine connected to the
-desktop code with the face page's exact code path, its answer going through the real ntfy.sh, frames arriving in
-about 3 s. Not verified: iPhone Safari and Android Chrome (needs a real phone, see the hand tests).
+peer (answer delivered through the encrypted relay path), another polls two relays (one down, one a fake), and
+`services/link-worker` has its own tests (`node --test`, CTest `link_worker`). A real Chrome on this machine
+connected to the desktop code with the face page's exact code path, its answer going through the real ntfy.sh,
+frames arriving in about 3 s; and again through the Worker's code run locally (`test/local-server.mjs`) after a
+dead first relay, with live MediaPipe frames. Not verified: iPhone Safari and Android Chrome (needs a real phone, see the hand tests).
 
 ## Pairing and security
 

@@ -8,6 +8,7 @@
 
 #include "core/Json.h"
 #include "core/Primitives.h"
+#include "ai/Http.h"
 #include "core/Texture.h"
 #include "io/ArExport.h"
 #include "io/GltfIO.h"
@@ -25,6 +26,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <mutex>
 #include <random>
 #include <thread>
 
@@ -573,6 +575,85 @@ TEST(face_link_over_webrtc) {
     CHECK(link.status().faceTransport == "WebRTC");
     phone.close();
     link.stop();
+}
+
+// The phone's answer through the relays (services/link-worker's protocol, which ntfy.sh also speaks): the first
+// relay is down, the second, a fake one here, carries the message; the desktop polls both and connects.
+TEST(face_link_answer_through_the_relays) {
+    if (!webrtcAvailable()) return;
+    std::mutex relayMutex;
+    std::vector<std::pair<std::string, std::string>> posted; // topic, message
+    HttpServer relay;
+    HttpServer::Options ro;
+    ro.port = 0;
+    ro.bindAddress = "127.0.0.1";
+    std::string err;
+    CHECK(relay.start(ro, [&](const HttpRequest& r) {
+        std::lock_guard lock(relayMutex);
+        const std::string prefix = "/relay/";
+        if (r.path.rfind(prefix, 0) != 0) return HttpResponse::text(404, "");
+        std::string topic = r.path.substr(prefix.size());
+        if (r.method == "POST") {
+            posted.emplace_back(topic, r.body);
+            return HttpResponse::json(200, "{}");
+        }
+        if (topic.size() < 5 || topic.substr(topic.size() - 5) != "/json" || r.param("poll") != "1")
+            return HttpResponse::text(400, "");
+        topic.resize(topic.size() - 5);
+        std::string lines;
+        for (size_t i = 0; i < posted.size(); ++i)
+            if (posted[i].first == topic)
+                lines += "{\"id\":\"m" + std::to_string(i) + "\",\"event\":\"message\",\"message\":\"" + posted[i].second + "\"}\n";
+        return HttpResponse::bytes("application/x-ndjson", lines);
+    }, err));
+    // Without an HTTP client in this build (no curl), the desktop can't poll: nothing to test.
+    if (ai::httpRequest("GET", "http://127.0.0.1:" + std::to_string(relay.port()) + "/relay/x/json?poll=1", {}, {}, 5).status != 200) {
+        relay.stop();
+        return;
+    }
+
+    const fs::path inbox = freshDir("sf_phone_relay");
+    PhoneLinkOptions o = testOptions(inbox);
+    const std::string relayBase = "http://127.0.0.1:" + std::to_string(relay.port()) + "/relay/";
+    o.relayUrl = "http://127.0.0.1:1/relay/ " + relayBase; // port 1: refused at once
+    PhoneLink link;
+    CHECK(link.start(o, err));
+    std::string url;
+    CHECK(link.createFaceLink(url, err));
+    const std::string fragment = url.substr(url.find('#') + 1);
+    // Both relays are in the link, in order (the page tries them so).
+    const size_t first = fragment.find("&r=" + percentEncode("http://127.0.0.1:1/relay/sculptforge-"));
+    const size_t second = fragment.find("&r=" + percentEncode(relayBase + "sculptforge-"));
+    CHECK(first != std::string::npos && second != std::string::npos && first < second);
+    const std::string topicUrl = percentDecode(fragment.substr(second + 3, fragment.find('&', second + 3) - second - 3));
+    const std::string topic = topicUrl.substr(relayBase.size());
+    std::string offer, faceKey;
+    CHECK(base64UrlDecode(queryParameter(fragment, "o"), offer));
+    CHECK(base64UrlDecode(queryParameter(fragment, "x"), faceKey));
+    FaceRtc phone;
+    std::string answer;
+    CHECK(phone.answerForTest(offer, answer, err));
+    Json msg = Json::object();
+    msg.set("k", link.token());
+    msg.set("sdp", answer);
+    std::string packed;
+    CHECK(aesGcmEncrypt(faceKey, msg.dump(), packed, err));
+    {
+        std::lock_guard lock(relayMutex);
+        posted.emplace_back("sculptforge-0000", "junk"); // another topic: ignored
+        posted.emplace_back(topic, "not-for-us");        // undecryptable: skipped
+        posted.emplace_back(topic, packed);
+    }
+    bool connected = false;
+    for (int i = 0; i < 200 && !connected; ++i) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        connected = link.status().faceConnected;
+        if (!connected) phone.sendFromTestPeer(faceJson(0.5f));
+    }
+    CHECK(connected);
+    phone.close();
+    link.stop();
+    relay.stop();
 }
 
 // --- QR code ---

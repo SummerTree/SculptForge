@@ -20,6 +20,8 @@ All notable changes to SculptForge are listed here. The format follows
 - Build: WebRTC through libdatachannel (MPL-2.0) and Mbed TLS (Apache-2.0), fetched and linked statically;
   `-DSCULPTFORGE_WEBRTC=OFF` builds without the live face feed.
 - Website: the face capture page (`website/link/`), which needs HTTPS for the phone's camera.
+- Services: `services/link-worker`, a Cloudflare Worker (free plan) that relays the face page's one encrypted
+  connection message to the desktop at `link.sculptforge.app`; ntfy.sh stays as the fallback. Not deployed yet.
 - "Fixes & suggestions" in the LightBox header (shown at startup) and the Help menu: opens the bug report and
   feature request forms on GitHub.
 

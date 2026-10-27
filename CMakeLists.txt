@@ -469,6 +469,13 @@ if(SCULPTFORGE_BUILD_TESTS)
                                      --out ${CMAKE_CURRENT_BINARY_DIR}/guide-site)
   endif()
 
+  # The phone link's relay (services/link-worker, a Cloudflare Worker) under plain Node, when Node 20+ is installed.
+  find_program(SCULPTFORGE_NODE node)
+  if(SCULPTFORGE_NODE)
+    add_test(NAME link_worker COMMAND ${SCULPTFORGE_NODE} --test test/
+             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/services/link-worker)
+  endif()
+
   # UI tests: each tests/ui/*.sfui script drives the real app headless (needs an
   # OpenGL 3.3 context; CI runs them on Linux under Xvfb with Mesa). Label "ui".
   if(SCULPTFORGE_BUILD_APP)

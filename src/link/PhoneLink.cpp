@@ -983,12 +983,12 @@ bool PhoneLink::createFaceLink(std::string& faceUrl, std::string& error) {
         relayTopic_ = topic;
         relayKey_ = key;
     }
-    const bool relay = options_.relayUrl != "off";
+    const std::vector<std::string> relays = relayUrls();
     // Everything after '#' stays on the phone: the website never sees the offer, the token or the key.
     faceUrl = options_.siteUrl + "#v=1&k=" + token + "&d=" + percentEncode(desktop) + "&o=" + base64UrlEncode(sdp) +
-              "&n=" + percentEncode(options_.desktopName) + "&x=" + base64UrlEncode(key) +
-              (relay ? "&r=" + percentEncode(options_.relayUrl + topic) : std::string());
-    if (relay) {
+              "&n=" + percentEncode(options_.desktopName) + "&x=" + base64UrlEncode(key);
+    for (const std::string& relay : relays) faceUrl += "&r=" + percentEncode(relay + topic); // the page tries them in order
+    if (!relays.empty()) {
         const int64_t since = int64_t(std::chrono::duration_cast<std::chrono::seconds>(
                                           std::chrono::system_clock::now().time_since_epoch()).count()) - 5;
         relayStop_ = false;
@@ -1049,14 +1049,30 @@ HttpResponse PhoneLink::directAnswer(const HttpRequest& request) {
     return HttpResponse::html(page);
 }
 
+std::vector<std::string> PhoneLink::relayUrls() const {
+    std::vector<std::string> urls;
+    if (options_.relayUrl == "off") return urls;
+    size_t pos = 0;
+    while (pos < options_.relayUrl.size()) {
+        size_t end = options_.relayUrl.find_first_of(" \t,", pos);
+        if (end == std::string::npos) end = options_.relayUrl.size();
+        if (end > pos) urls.push_back(options_.relayUrl.substr(pos, end - pos));
+        pos = end + 1;
+    }
+    return urls;
+}
+
 void PhoneLink::relayLoop(std::string topic, std::string key, int64_t sinceUnix) {
     const auto started = Clock::now();
+    const std::vector<std::string> relays = relayUrls();
     std::string seen;
     while (!relayStop_ && Clock::now() - started < std::chrono::minutes(5)) {
-        const ai::HttpResponse r = ai::httpRequest(
-            "GET", options_.relayUrl + topic + "/json?poll=1&since=" + std::to_string(sinceUnix), {}, {}, 10);
-        if (relayStop_) return;
-        if (r.status == 200) {
+        // Every relay in turn: the page posts to the first one that takes it (an unreachable one fails fast).
+        for (const std::string& relay : relays) {
+            const ai::HttpResponse r =
+                ai::httpRequest("GET", relay + topic + "/json?poll=1&since=" + std::to_string(sinceUnix), {}, {}, 5);
+            if (relayStop_) return;
+            if (r.status != 200) continue;
             size_t pos = 0;
             while (pos < r.body.size()) {
                 size_t end = r.body.find('\n', pos);
@@ -1064,9 +1080,9 @@ void PhoneLink::relayLoop(std::string topic, std::string key, int64_t sinceUnix)
                 Json event;
                 std::string err;
                 if (Json::parse(r.body.substr(pos, end - pos), event, err) && event["event"].asString() == "message") {
-                    const std::string id = event["id"].asString();
-                    if (seen.find("|" + id + "|") == std::string::npos) {
-                        seen += "|" + id + "|";
+                    const std::string id = "|" + relay + " " + event["id"].asString() + "|";
+                    if (seen.find(id) == std::string::npos) {
+                        seen += id;
                         if (acceptRelayMessage(event["message"].asString(), err)) return;
                     }
                 }
