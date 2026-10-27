@@ -3,6 +3,7 @@
 #pragma once
 
 #include "core/Mesh.h"
+#include "core/MorphAnimation.h"
 #include "core/Splats.h"
 #include "io/MeshObject.h"
 
@@ -18,9 +19,11 @@ namespace sf {
 // (core/Texture.h) is embedded as a PNG: the primitive's baseColorTexture.
 bool saveGlb(const std::string& path, const Mesh& mesh, const std::string& name, std::string& error);
 // One node and mesh per object (SubTool), each with its own morph targets;
-// with several, the scene is called `sceneName`.
+// with several, the scene is called `sceneName`. `animation` (optional, e.g. a
+// baked face take) becomes a glTF animation on the morph target weights of
+// every object with layers of those names (other targets keyed at 0).
 bool saveGlb(const std::string& path, const std::vector<MeshObjectRef>& objects, const std::string& sceneName,
-             std::string& error);
+             std::string& error, const MorphAnimation* animation = nullptr);
 
 // Reads .glb or .gltf (embedded/data-URI or external buffers). All triangle
 // primitives in the default scene are merged with their node transforms

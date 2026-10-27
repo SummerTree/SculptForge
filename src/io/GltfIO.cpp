@@ -16,6 +16,7 @@
 #include <unordered_map>
 
 #include <array>
+#include <algorithm>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -96,7 +97,7 @@ bool saveGlb(const std::string& path, const Mesh& mesh, const std::string& name,
 }
 
 bool saveGlb(const std::string& path, const std::vector<MeshObjectRef>& objects, const std::string& sceneName,
-             std::string& error) {
+             std::string& error, const MorphAnimation* animation) {
     if (objects.empty()) {
         error = "Nothing to export";
         return false;
@@ -134,6 +135,21 @@ bool saveGlb(const std::string& path, const std::vector<MeshObjectRef>& objects,
         views.push_back({off, v.size() * sizeof(glm::vec2), 34962});
         accessors << (accessorCount ? "," : "") << "{\"bufferView\":" << views.size() - 1
                   << ",\"componentType\":5126,\"count\":" << v.size() << ",\"type\":\"VEC2\"}";
+        return accessorCount++;
+    };
+    auto addScalars = [&](const std::vector<float>& v, bool withMinMax) { // animation data (no buffer target)
+        size_t off = bin.append(v.data(), v.size() * sizeof(float));
+        views.push_back({off, v.size() * sizeof(float), 0});
+        accessors << (accessorCount ? "," : "") << "{\"bufferView\":" << views.size() - 1
+                  << ",\"componentType\":5126,\"count\":" << v.size() << ",\"type\":\"SCALAR\"";
+        if (withMinMax && !v.empty()) {
+            std::ostringstream mm;
+            mm.precision(9);
+            mm << ",\"min\":[" << *std::min_element(v.begin(), v.end()) << "],\"max\":["
+               << *std::max_element(v.begin(), v.end()) << "]";
+            accessors << mm.str();
+        }
+        accessors << "}";
         return accessorCount++;
     };
 
@@ -234,6 +250,34 @@ bool saveGlb(const std::string& path, const std::vector<MeshObjectRef>& objects,
         json << "}";
     }
 
+    // The animation: one sampler per object with layers the animation names, keying all of its targets.
+    std::ostringstream samplers, channels;
+    int animated = 0;
+    if (animation && !animation->empty()) {
+        int input = -1;
+        for (size_t oi = 0; oi < objects.size(); ++oi) {
+            const Mesh& mesh = *objects[oi].mesh;
+            std::vector<int> channelOf;
+            bool any = false;
+            for (const auto& l : mesh.layers) {
+                channelOf.push_back(animation->channel(l.name));
+                any |= channelOf.back() >= 0;
+            }
+            if (!any) continue;
+            if (input < 0) input = addScalars(animation->times, true);
+            std::vector<float> out;
+            out.reserve(animation->times.size() * channelOf.size());
+            for (size_t k = 0; k < animation->times.size(); ++k)
+                for (int c : channelOf) out.push_back(c >= 0 ? animation->value(k, size_t(c)) : 0.0f);
+            const int output = addScalars(out, false);
+            samplers << (animated ? "," : "") << "{\"input\":" << input << ",\"output\":" << output
+                     << ",\"interpolation\":\"LINEAR\"}";
+            channels << (animated ? "," : "") << "{\"sampler\":" << animated << ",\"target\":{\"node\":" << oi
+                     << ",\"path\":\"weights\"}}";
+            ++animated;
+        }
+    }
+
     std::ostringstream json;
     json << "{\"asset\":{\"version\":\"2.0\",\"generator\":\"SculptForge\"},\"scene\":0,\"scenes\":[{";
     if (objects.size() > 1) json << "\"name\":\"" << jsonEscape(sceneName) << "\",";
@@ -253,6 +297,9 @@ bool saveGlb(const std::string& path, const std::vector<MeshObjectRef>& objects,
         for (int i = 0; i < textureCount; ++i) json << (i ? "," : "") << "{\"sampler\":0,\"source\":" << i << "}";
         json << "],\"materials\":[" << materials.str() << "]";
     }
+    if (animated)
+        json << ",\"animations\":[{\"name\":\"" << jsonEscape(animation->name) << "\",\"samplers\":[" << samplers.str()
+             << "],\"channels\":[" << channels.str() << "]}]";
     json << "}";
 
     return writeGlbFile(path, json.str(), bin.data, error);

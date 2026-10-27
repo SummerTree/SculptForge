@@ -31,6 +31,7 @@ struct BridgeObject {
     std::string file;            // .GoZ file name inside the manifest's folder
     bool hasMatrix = false;      // the mesh is in object space and `matrix` places it in the scene
     glm::dmat4 matrix{1.0};      // Blender's matrix_world (Z-up, metres; glm column-major)
+    std::string shapes;          // optional: blend shapes file (writeBridgeShapes) beside the .GoZ
 };
 
 struct BridgeManifest {
@@ -57,6 +58,19 @@ bool readBridgeManifest(const std::string& path, BridgeManifest& out, std::strin
 glm::dvec3 blenderToSculptForge(const glm::dvec3& p);
 glm::dvec3 sculptForgeToBlender(const glm::dvec3& p);
 glm::dmat4 blenderMatrixToSculptForge(const glm::dmat4& m);
+
+// Blend shapes (sculpt layers) for the add-on's shape keys, sent beside an object's .GoZ (which then holds the base
+// shape, every layer at zero). Little endian: "SFSHAPES", u32 version 1, u32 vertex count, u32 shape count, then per
+// shape u32 name length, the name (UTF-8), f32 weight, u32 count N, u32[N] vertex indices, f32[3N] offsets in
+// Blender's axes (Z up, metres, world space).
+struct BridgeShape {
+    std::string name;
+    float weight = 0.0f;
+    std::vector<uint32_t> index;
+    std::vector<glm::vec3> offset; // Blender axes
+};
+bool writeBridgeShapes(const std::string& path, const Mesh& mesh, std::string& error);
+bool readBridgeShapes(const std::string& path, uint32_t& vertexCount, std::vector<BridgeShape>& out, std::string& error);
 
 // Loads what Blender sent (<root>/to_sculptforge): every object's .GoZ, moved by its matrix into place, named
 // after its Blender object. `manifest` receives the manifest (for its revision).

@@ -378,6 +378,39 @@ def read_goz(path):
     return out
 
 
+def read_shapes(path):
+    """A SculptForge blend shapes file (an object's sculpt layers, e.g. the 52 ARKit facial shapes): a list of
+    (name, weight, indices, offsets) with offsets (N, 3) in Blender's axes, world space, and the vertex count.
+    The object's .GoZ then holds the base shape (every layer at zero)."""
+    with open(path, "rb") as f:
+        data = f.read()
+    if len(data) < 20 or data[:8] != b"SFSHAPES":
+        raise ValueError("Not a SculptForge shapes file: %s" % path)
+    version, nv, count = struct.unpack_from("<III", data, 8)
+    if version != 1:
+        raise ValueError("The shapes file is from a newer SculptForge; update the add-on")
+    pos = 20
+    shapes = []
+    for _ in range(count):
+        if pos + 4 > len(data):
+            raise ValueError("Truncated shapes file: %s" % path)
+        (n,) = struct.unpack_from("<I", data, pos)
+        name = data[pos + 4:pos + 4 + n].decode("utf-8", "replace")
+        pos += 4 + n
+        weight, k = struct.unpack_from("<fI", data, pos)
+        pos += 8
+        if k > nv or pos + 16 * k > len(data):
+            raise ValueError("Truncated shapes file: %s" % path)
+        idx = np.frombuffer(data, dtype="<u4", count=k, offset=pos).astype(np.int64)
+        pos += 4 * k
+        off = np.frombuffer(data, dtype="<f4", count=3 * k, offset=pos).reshape(-1, 3).astype(np.float64)
+        pos += 12 * k
+        if k and idx.max() >= nv:
+            raise ValueError("The shapes file has bad vertex indices: %s" % path)
+        shapes.append((name, float(weight), idx, off))
+    return nv, shapes
+
+
 # --------------------------------------------------------------------------------------------------
 # SculptForge: running? installed where? start it
 # --------------------------------------------------------------------------------------------------
