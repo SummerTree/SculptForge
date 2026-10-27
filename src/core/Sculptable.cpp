@@ -197,21 +197,22 @@ size_t fixAmbiguousCubes(std::vector<float>& f, const ivec3& dims, float iso) {
     return fixed;
 }
 
-// Keeps only the largest 6-connected piece of the set cells. Returns how many pieces there were; `removed` gets
-// the number of cells dropped. `scratch` is a same-sized work array.
-int keepLargestPiece(std::vector<uint8_t>& cells, const ivec3& dims, std::vector<uint8_t>& scratch, size_t& removed) {
+// Drops the 6-connected pieces of the set cells smaller than `minFraction` of the largest one (1: keeps only the
+// largest). Returns how many pieces there were; `removed` gets the number of cells dropped. `scratch` is a
+// same-sized work array.
+int dropSmallPieces(std::vector<uint8_t>& cells, const ivec3& dims, std::vector<uint8_t>& scratch, float minFraction,
+                    size_t& removed) {
     const size_t n = cells.size();
     scratch.assign(n, 0);
     std::vector<uint32_t> stack;
-    size_t bestCount = 0, total = 0;
-    uint32_t bestSeed = 0;
-    int pieces = 0;
+    std::vector<std::pair<uint32_t, size_t>> pieces; // seed, size
     const int64_t sy = dims.x, sz = int64_t(dims.x) * dims.y;
-    for (size_t seed = 0; seed < n; ++seed) {
-        if (!cells[seed] || scratch[seed]) continue;
-        scratch[seed] = 1;
-        stack.assign(1, uint32_t(seed));
+    // Floods the piece holding `seed` over cells equal to `match`, setting each to `set` in `mark` (scratch to count
+    // a piece, cells to clear one); returns its size.
+    auto grow = [&](uint32_t seed, std::vector<uint8_t>& mark, uint8_t match, uint8_t set) {
         size_t count = 0;
+        mark[seed] = set;
+        stack.assign(1, seed);
         while (!stack.empty()) {
             const uint32_t i = stack.back();
             stack.pop_back();
@@ -224,28 +225,28 @@ int keepLargestPiece(std::vector<uint8_t>& cells, const ivec3& dims, std::vector
             for (int k = 0; k < 6; ++k) {
                 if (!valid[k]) continue;
                 const uint32_t j = uint32_t(int64_t(i) + offsets[k]);
-                if (cells[j] && !scratch[j]) {
-                    scratch[j] = 1;
+                if (cells[j] && mark[j] == match) {
+                    mark[j] = set;
                     stack.push_back(j);
                 }
             }
         }
-        ++pieces;
-        total += count;
-        if (count > bestCount) {
-            bestCount = count;
-            bestSeed = uint32_t(seed);
-        }
+        return count;
+    };
+    for (size_t seed = 0; seed < n; ++seed)
+        if (cells[seed] && !scratch[seed]) pieces.push_back({uint32_t(seed), grow(uint32_t(seed), scratch, 0, 1)});
+    size_t largest = 0;
+    for (const auto& p : pieces) largest = std::max(largest, p.second);
+    removed = 0;
+    bool keptLargest = false;
+    for (const auto& [seed, count] : pieces) {
+        // minFraction 1 keeps exactly one piece (the first of equally large ones).
+        bool keep = double(count) >= double(minFraction) * double(largest);
+        if (minFraction >= 1.0f) keep = count == largest && !keptLargest;
+        keptLargest |= keep && count == largest;
+        if (!keep) removed += grow(seed, cells, 1, 0);
     }
-    removed = total - bestCount;
-    if (pieces > 1) {
-        std::fill(scratch.begin(), scratch.end(), 0);
-        scratch[bestSeed] = 1;
-        stack.assign(1, bestSeed);
-        flood(cells, dims, stack, scratch);
-        cells.swap(scratch);
-    }
-    return pieces;
+    return int(pieces.size());
 }
 
 struct SplatKernel {
@@ -449,11 +450,12 @@ bool splatSurface(const SplatCloud& cloud, const SplatSurfaceOptions& o, Mesh& o
     morph(wall, dims, closeRadius, true);
     if (!tick(progress, 0.62f)) return fail("Cancelled");
 
-    // Floaters go first: shell pieces apart from the subject would box in the empty space around it.
+    // Floaters go first: small shell pieces apart from the subject would box in the empty space around it. (Not
+    // just the largest piece: splats inside the subject can make a bigger shell piece than its thin surface.)
     if (!o.keepAllParts) {
         std::vector<uint8_t> scratch;
         size_t removed = 0;
-        st.pieces = keepLargestPiece(wall, dims, scratch, removed);
+        st.pieces = dropSmallPieces(wall, dims, scratch, 0.02f, removed);
         st.floaterVoxels = removed;
     }
     std::vector<uint8_t> block = wall;
@@ -513,7 +515,7 @@ bool splatSurface(const SplatCloud& cloud, const SplatSurfaceOptions& o, Mesh& o
     std::vector<uint8_t>& visited = outside; // reuse as scratch
     if (!o.keepAllParts) {
         size_t removed = 0;
-        st.pieces = std::max(st.pieces, keepLargestPiece(solid, dims, visited, removed));
+        st.pieces = std::max(st.pieces, dropSmallPieces(solid, dims, visited, 1.0f, removed));
         st.floaterVoxels += removed;
     }
     st.solidVoxels = size_t(std::count(solid.begin(), solid.end(), uint8_t(1)));

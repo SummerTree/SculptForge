@@ -12,6 +12,27 @@ sculptforge-cli --bench ...                     # the same without the GPU (CI, 
 Machine for all figures: Apple M1 Pro (8 performance + 2 efficiency cores, 32 GB unified memory, 30 GB usable
 under Asahi Linux), integrated GPU, Mesa 26.1 (OpenGL 4.6). How the benchmark works is described under v0.5 below.
 
+## v0.9: Make sculptable (feat/sculptable)
+
+Splat capture to a sculptable SubTool (`splat_to_mesh`, core/Sculptable.h): the built-in test head capture
+(`splat_test_capture count=N floaters=20`), Film preset (12,000 quads) with face loops and polypaint, from the
+command to the finished SubTool. M1 Pro (10 cores), Release build, `sculptforge-cli`; peak RSS of the whole run
+(capture generation included). "Surface" is the splat density, solid and surface nets; the rest is face
+landmarks, QRemesh and colour.
+
+| Splats | Detail | Total | Surface | Peak RSS |
+|---|---|---|---|---|
+| 1.05M | 256 | 3.4 s | 1.3 s | 0.29 GB |
+| 1.05M | 384 | 5.5 s | 2.6 s | 0.47 GB |
+| 1.05M | 512 | 8.8 s | 5.1 s | 0.97 GB |
+| 5.25M | 256 | 7.2 s | 4.2 s | 0.83 GB |
+| 5.25M | 384 | 9.1 s | 5.6 s | 0.90 GB |
+| 5.25M | 512 | 13.2 s | 8.0 s | 1.20 GB |
+
+The density pass splits the grid into slabs of 4 z-layers, each summing its splats in index order, so the result
+is the same on any number of threads (test `sculptable_deterministic`). No other figure in this file changes:
+the feature adds code paths only.
+
 ## 0.8.1: texture painting (feat/texpaint)
 
 One dab of the Paint brush into a texture, X symmetry on, a stroke of 12 dabs across an icosphere with spherical

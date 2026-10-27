@@ -432,6 +432,7 @@ std::string UserGuide::chapterFor(const std::string& palette, const std::string&
         return "exporting.md";
     if (starts("File")) return "projects.md";
     if (starts("Generate")) return "generate-3d.md";
+    if (starts("Splats > Make sculptable")) return "scan-to-sculptable.md";
     if (starts("Splats")) return "splats.md";
     if (starts("Script")) return "scripting.md";
     if (starts("Transform > Gizmo") || idStarts("gizmo.") || actionId == "tool.draw" || actionId == "tool.move" ||

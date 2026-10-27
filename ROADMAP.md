@@ -174,7 +174,10 @@ Ranked by what sculptors cite most on the ZBrush, Polycount, Blender and Mudbox 
 - 📋 UV editing (seams, relax, pack options), UDIM tiles; ✅ texture baking (normal/displacement, v0.5)
 - ✅ STL import (binary and ASCII) and binary export
 - 📋 Binary USD (usdc), SPZ-compressed splats, USD references/payloads
-- 📋 Splat editing: crop box, paint-select, sculpt deforming nearby splats
+- ✅ Make sculptable: splat capture → watertight surface → face-aware quads (eye, mouth and nasolabial loops) with
+  the capture's colours, crop box, Game / Film / Sculpt presets (v0.9)
+- 📋 Make sculptable: a learned face landmark model (bundled, permissive licence) for hard faces; ears and hands
+- 📋 Splat editing: paint-select, sculpt deforming nearby splats
 
 ## Phase 5 — Ecosystem (v1.0)
 

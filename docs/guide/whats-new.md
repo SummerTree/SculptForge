@@ -5,6 +5,17 @@ chapter opens by itself the first time you start a new version; you can always f
 **Help > What's New**. Every detail is in the
 [changelog](https://github.com/islandmed/SculptForge/blob/main/CHANGELOG.md).
 
+## Next version (in development)
+
+### Make sculptable: from a scan to a production asset
+
+One click in the **Splats** palette turns a Gaussian-splat capture into a clean SubTool you can sculpt, rig and
+animate: a watertight surface with the floaters and background gone and open bottoms sealed, quad topology at a
+Game, Film or Sculpt budget, edge loops round the eyes and mouth and along the nasolabial folds when the capture
+is a head (mirrored across the face), and the capture's colours as polypaint or a texture. A crop box cuts away
+the table or the room; Review shows the face landmarks to nudge before remeshing. The splats stay, hidden. Five
+million splats take about ten seconds on a laptop. See [From scan to sculptable mesh](scan-to-sculptable.md).
+
 ## Version 0.8.1
 
 Fixes from a ZBrush artist's testing, and a way to bring your ZTools over.

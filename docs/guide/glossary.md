@@ -85,7 +85,7 @@ for what is planned.
 | Community gallery | Shared CC0 brushes you can install in one click (**Community brushes**) |
 | Console | The script console (backtick key): every action appears as a script line |
 | Ctrl help | Hold <kbd>Ctrl</kbd> and point at a control to see what it does, its shortcut and its command |
-| Gaussian splat | A 3D capture made of soft coloured blobs (from phone scanning apps). Load one as a reference, convert it to a mesh, or turn a sculpt into splats. See [Gaussian splats](splats.md) |
+| Gaussian splat | A 3D capture made of soft coloured blobs (from phone scanning apps). Load one as a reference, make it a sculptable mesh, or turn a sculpt into splats. See [Gaussian splats](splats.md) and [From scan to sculptable mesh](scan-to-sculptable.md) |
 | Falloff (Gizmo 3D) | How far a gizmo move eases in from the mask's edge, as a share of the SubTool's size: a soft joint when posing. See [Gizmo 3D](gizmo.md#posing-a-limb) |
 | Generate 3D | Turn an image or a description into a sculptable model. See [Image and text to 3D](generate-3d.md) |
 | Gizmo 3D | The Move / Scale / Rotate handles (<kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd>) for placing and posing a SubTool or its unmasked part. See [Gizmo 3D](gizmo.md) |

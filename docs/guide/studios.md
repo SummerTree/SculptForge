@@ -104,7 +104,7 @@ sculptforge-cli --set in=/ingest/scan_042.ply --set usd=/assets/scan_042.usda --
   open path=$in
   splat_transform rotate_x=180 fit=true
   splat_clean
-  splat_to_mesh resolution=320
+  splat_to_mesh detail=320 preset=game color=texture
   export_usd path=$usd
   export_lods path=$glb levels=4 ratio=0.5
 '

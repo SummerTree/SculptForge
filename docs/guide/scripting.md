@@ -117,7 +117,8 @@ the ones you will use most:
 | Export | `export_fbx` | `path` (required), `lods`, `ratio`, `scale` |
 | Export | `export_lods` | `path` (required), `levels`, `ratio` |
 | Unreal | `unreal_send` | `destination`, `height_cm`, `lods`, `network` |
-| Splats | `splat_to_mesh` | `resolution`, `close`, `smooth` |
+| Splats | `splat_to_mesh` (Make sculptable) | `detail`, `preset`, `color`, `crop`, `face_guides`, `stage` |
+| Splats | `face_guides` | `landmarks`, `front`, `up`, `target` |
 | Edit | `undo`, `redo` | |
 
 A few commands exist only inside the app, because they change the view rather than the model: `set_material`

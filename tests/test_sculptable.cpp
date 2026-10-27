@@ -133,6 +133,19 @@ TEST(sculptable_floaters_and_crop) {
     CHECK(err.find("crop") != std::string::npos);
 }
 
+TEST(sculptable_inside_splats_dont_win) {
+    // Trained captures fill the inside with splats. At fine Detail that inner cloud covers more voxels than the
+    // thin surface shell; the surface must still be the one kept.
+    const SplatCloud c = sphereCapture(60000, 0, 20000);
+    SplatSurfaceOptions o;
+    o.resolution = 200;
+    Mesh m;
+    std::string err;
+    CHECK(splatSurface(c, o, m, err));
+    CHECK(watertight(m));
+    CHECK(std::abs(m.bounds().extent().x - 2.0f) < 0.08f && std::abs(volume(m) - 4.18879) < 0.4);
+}
+
 TEST(sculptable_fills_open_bottom) {
     // A subject standing on a table: no splats on its lowest part. Fill holes keeps it solid.
     const SplatCloud c = sphereCapture(60000, 0, 0, true);
