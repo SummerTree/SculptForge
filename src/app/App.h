@@ -99,7 +99,7 @@ public:
     void queueFile(FileAction action, std::string path);
 
 private:
-    enum class Drag { None, Stroke, Orbit, Pan, Zoom, Roll, MaskCanvas, SubToolClick, Select, Gizmo, Guide };
+    enum class Drag { None, Stroke, Orbit, Pan, Zoom, Roll, MaskCanvas, SubToolClick, Select, Gizmo, Guide, Sculptable };
 
     void handleEvent(const SDL_Event& e);
     void onMouseDown(float x, float y, Uint8 button);
@@ -271,7 +271,6 @@ private:
     bool remeshGenerated_ = true;
     int voxelResolution_ = 200;
     bool keepTexture_ = true; // Keep Texture: remeshes carry a painted texture over (core/TextureTransfer.h)
-    int splatMeshResolution_ = 192;
     int remeshResolution_ = 256;
     std::future<ai::GeneratorResult> pendingGenerator_;
     std::shared_ptr<ai::GenerationProgress> generatorProgress_;
@@ -477,6 +476,25 @@ private:
         int lastStrokeFrames = 0;
         bool gpuOutOfMemory = false;
     } perf_;
+    // Splats > Make sculptable (PanelSculptable.cpp, core/Sculptable.h): splat capture -> sculptable SubTool on a
+    // worker thread; the crop box and the face landmark review in the viewport.
+    void registerSculptableUiActions();
+    void drawSculptableSection();
+    void startSculptable(int stage); // 0 all, 1 the scan for review, 2 finish the reviewed scan
+    void pollSculptable();
+    bool sculptableBusy() const;
+    Args sculptableArgs(int stage) const;
+    void setSculptableCrop(bool on);
+    void runSculptableGuides(Args args); // face_guides, keeping the landmarks it reports
+    void drawSculptableOverlay();
+    bool sculptableMouseDown(float x, float y); // true if it took the click (a landmark, a crop handle)
+    void sculptableMouseMove(float x, float y);
+    void sculptableMouseUp();
+    bool sculptableReviewActive() const;
+    bool sculptableHot() const; // the cursor is on a landmark dot or crop handle (no brush ring), or placing landmarks
+    bool sculptableLandmarkScreen(int i, ImVec2& out) const; // UI tests: where landmark i is drawn
+    double sculptableTestValue(const std::string& name);     // NaN for names it doesn't know
+    std::shared_ptr<struct SculptableUiState> sculptable_;
     // Geometry > QRemesh (quad retopology on a worker thread) and SubTool > Project (ProjectAll); PanelRetopo.cpp.
     void registerRetopoUiActions();
     void drawQRemeshContents();

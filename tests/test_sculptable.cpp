@@ -106,7 +106,9 @@ TEST(sculptable_floaters_and_crop) {
     CHECK(st.pieces > 1 && st.floaterVoxels > 0);
     CHECK(watertight(m));
     const AABB b = m.bounds();
-    CHECK(b.max.x < 1.1f && b.min.x > -1.1f && b.max.y < 1.1f && b.min.y > -1.1f);
+    // The floaters are 2.2 or more from the centre; the grid is coarse here (it spans them), so allow a voxel or two.
+    const float slack = 1.0f + 2.0f * st.cell;
+    CHECK(b.max.x < slack && b.min.x > -slack && b.max.y < slack && b.min.y > -slack);
 
     // Keep every piece: the floaters come back.
     o.keepAllParts = true;
@@ -143,6 +145,7 @@ TEST(sculptable_fills_open_bottom) {
     CHECK(volume(filled) > 3.0); // nearly the whole sphere (4.19) minus the cut cap
     o.fillHoles = false;
     CHECK(splatSurface(c, o, hollow, err));
+    if (volume(hollow) >= 1.0) std::printf("  hollow volume %.3f, filled %.3f\n", volume(hollow), volume(filled));
     CHECK(volume(hollow) < 1.0); // without it the flood leaks in: only a thin shell
 }
 

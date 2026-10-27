@@ -24,6 +24,7 @@
 // All of it runs on a worker thread in the app (progress and Cancel); the splat_to_mesh command runs it inline.
 #pragma once
 
+#include "core/Commands.h"
 #include "core/Mesh.h"
 #include "core/QRemesh.h"
 #include "core/QRemeshGuides.h"
@@ -97,7 +98,8 @@ private:
     std::vector<uint32_t> cellStart_;    // CSR: splats of cell c are [cellStart_[c], cellStart_[c + 1])
 };
 
-// Sets the polypaint of every vertex from the splats. Returns how many vertices found no splat nearby.
+// Sets the polypaint of every vertex from the splats. Vertices with no splat near take their neighbours' colour;
+// returns how many there were.
 size_t colorFromSplats(Mesh& mesh, const SplatColorSampler& sampler);
 // Bakes the splat colour into a size x size texture on the mesh's UVs (it must have UVs); painting then goes
 // into the texture.
@@ -207,6 +209,16 @@ SplatCloud makeTestCapture(const Mesh& mesh, const TestCaptureOptions& options);
 // ProjectAll from again) when `keepScan`, then "<name>" made active. An untouched starting sphere is hidden.
 // Returns the status message.
 std::string applySculptable(Document& doc, SculptableResult& result, bool keepScan);
+// Stage 1 into the scene: the scan as "<name> Scan", made active, with the face guides. Returns the status message
+// (with the landmarks as JSON when a face was found).
+std::string applySculptableScan(Document& doc, SculptableResult& result);
+// Stage 2 into the scene: the result next to the active scan SubTool `scanIndex` (hidden, or removed without
+// `keepScan`), named like it without " Scan", made active. Returns the status message.
+std::string applySculptableFinish(Document& doc, SculptableResult& result, int scanIndex, bool keepScan);
+
+// The options of a splat_to_mesh command line (the app builds its runs from the same arguments, so the console
+// shows what it did). False with `error` on a bad value.
+bool sculptableOptionsFromArgs(const Args& args, SculptableOptions& options, std::string& error);
 
 // splat_to_mesh, face_guides, splat_test_capture.
 void registerSculptableCommands(CommandRegistry& registry);

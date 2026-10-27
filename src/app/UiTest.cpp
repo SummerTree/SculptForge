@@ -24,6 +24,7 @@
 //                            move_view rotate_x rotate_y rotate_z rotate_view scale_x scale_y scale_z scale_uniform;
 //                            keep: leave the button down (a shot mid-drag), then `release`
 //   gizmo_hover HANDLE       move the mouse onto a Gizmo 3D handle (it lights up, for screenshots)
+//   drag_landmark N DX DY [S] left-drag Make sculptable's face landmark N (0-7, FaceLandmarks order) by DX DY pixels
 //   orbit DX DY              right-drag on the background, in pixels (with the held modifiers)
 //   camera YAW PITCH         set the view's angles in degrees (0 0 = the front view), e.g. for guide screenshots
 //   run COMMANDS             sculptforge-cli commands, e.g. run new_sphere subdivisions=4
@@ -84,6 +85,9 @@
 //                            center_x / center_y / center_z and size_x / size_y / size_z (active mesh bounds)
 //                            bake_running, baked_maps (maps in the last bake), bake_size, bake_files (files it wrote),
 //                            normal_map_preview (1 when the active SubTool shows its baked normal map)
+//                            sculptable_running, sculptable_review, sculptable_landmarks (8 when placed),
+//                            sculptable_placing (next landmark to click, -1), sculptable_crop, sculptable_crop_height,
+//                            show_splats, landmark_x_N / landmark_y_N / landmark_z_N (face landmark N, mesh space)
 //   (mesh values are the active SubTool's)
 //   snapshot                 remember the active mesh's vertices (for the moved* values)
 //   remember VALUE NAME      keep VALUE's current value as $NAME
@@ -260,6 +264,7 @@ double Demo::query(const std::string& name, bool& known) const {
     if (name == "active_texture_layer") return hasTexture(m) && !m.texture->layers.empty() ? double(m.texture->activeLayer) : -1.0;
     if (name == "auto_uv_running") return app_.autoUv_ ? 1.0 : 0.0;
     if (const double v = app_.bakeTestValue(name); !std::isnan(v)) return v;
+    if (const double v = app_.sculptableTestValue(name); !std::isnan(v)) return v;
     if (name == "qremesh_running") return app_.qremesh_ ? 1.0 : 0.0;
     if (name == "qremesh_guides") return double(app_.doc_.qremeshGuides.size());
     if (name == "qremesh_guide_loops") {
@@ -524,7 +529,21 @@ bool Demo::parseStep(int line, const std::vector<std::string>& w, std::string& e
         const std::string label = w[1];
         steps_.push_back([this, line, label](float t) {
             ImVec2 to;
-            if (findItem(label, to)) {
+            bool visible = false;
+            ImVec4 clip;
+            if (findItem(label, to, &visible, &clip)) {
+                // Scrolled out of its panel: wheel the panel towards it first (as click does).
+                if (!visible && clip.z > clip.x && clip.w > clip.y && t <= 2.0f) {
+                    mouseMotion((clip.x + clip.z) * 0.5f, (clip.y + clip.w) * 0.5f);
+                    SDL_Event e{};
+                    e.type = SDL_EVENT_MOUSE_WHEEL;
+                    e.wheel.windowID = SDL_GetWindowID(app_.window_);
+                    e.wheel.y = to.y > clip.w ? -1.0f : 1.0f;
+                    e.wheel.mouse_x = mouse_.x;
+                    e.wheel.mouse_y = mouse_.y;
+                    app_.handleEvent(e);
+                    return false;
+                }
                 mouseMotion(to.x, to.y);
                 return true;
             }
@@ -639,6 +658,30 @@ bool Demo::parseStep(int line, const std::vector<std::string>& w, std::string& e
                 SDL_SetModState(SDL_KMOD_NONE);
             }
             mouseMotion(a.x + (b.x - a.x) * u, a.y + (b.y - a.y) * u);
+            if (t >= seconds) {
+                mouseButton(false, SDL_BUTTON_LEFT);
+                return true;
+            }
+            return false;
+        });
+        wait(0.1f);
+    } else if (verb == "drag_landmark") {
+        if (!need(3)) return false;
+        const int index = int(num(1, 0));
+        const float dx = num(2, 0), dy = num(3, 0), seconds = num(4, 0.4f);
+        auto start = std::make_shared<ImVec2>();
+        steps_.push_back([this, line, index, dx, dy, seconds, start](float t) {
+            if (t == 0.0f) {
+                if (!app_.sculptableLandmarkScreen(index, *start)) {
+                    fail(line, "face landmark " + std::to_string(index) + " is not shown (Make sculptable's review)");
+                    return true;
+                }
+                mouseMotion(start->x, start->y);
+                return false;
+            }
+            if (!buttonDown_ && t < seconds) mouseButton(true, SDL_BUTTON_LEFT);
+            const float u = std::min(t / seconds, 1.0f);
+            mouseMotion(start->x + dx * u, start->y + dy * u);
             if (t >= seconds) {
                 mouseButton(false, SDL_BUTTON_LEFT);
                 return true;
@@ -838,7 +881,8 @@ bool Demo::parseStep(int line, const std::vector<std::string>& w, std::string& e
             const bool idle = !busy(app_.pendingBrush_) && !busy(app_.pendingGenerator_) && !busy(app_.pendingModels_) &&
                               !busy(app_.pendingUnreal_) && !busy(app_.pendingComfyCheck_) && !app_.galleryBusy() &&
                               !app_.thumbs_.busy() && !app_.libraryScanner_.busy() && !app_.autoUv_ &&
-                              !app_.bakeBusy() && !app_.qremesh_ && !app_.voxelRemesh_ && !app_.updateJob_;
+                              !app_.bakeBusy() && !app_.qremesh_ && !app_.voxelRemesh_ && !app_.updateJob_ &&
+                              !app_.sculptableBusy();
             *idleFrames = idle ? *idleFrames + 1 : 0;
             if (*idleFrames >= 4) return true;
             if (idle) return false;

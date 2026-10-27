@@ -197,6 +197,57 @@ size_t fixAmbiguousCubes(std::vector<float>& f, const ivec3& dims, float iso) {
     return fixed;
 }
 
+// Keeps only the largest 6-connected piece of the set cells. Returns how many pieces there were; `removed` gets
+// the number of cells dropped. `scratch` is a same-sized work array.
+int keepLargestPiece(std::vector<uint8_t>& cells, const ivec3& dims, std::vector<uint8_t>& scratch, size_t& removed) {
+    const size_t n = cells.size();
+    scratch.assign(n, 0);
+    std::vector<uint32_t> stack;
+    size_t bestCount = 0, total = 0;
+    uint32_t bestSeed = 0;
+    int pieces = 0;
+    const int64_t sy = dims.x, sz = int64_t(dims.x) * dims.y;
+    for (size_t seed = 0; seed < n; ++seed) {
+        if (!cells[seed] || scratch[seed]) continue;
+        scratch[seed] = 1;
+        stack.assign(1, uint32_t(seed));
+        size_t count = 0;
+        while (!stack.empty()) {
+            const uint32_t i = stack.back();
+            stack.pop_back();
+            ++count;
+            const int x = int(i % uint32_t(dims.x));
+            const int y = int((i / uint32_t(dims.x)) % uint32_t(dims.y));
+            const int z = int(i / uint32_t(sz));
+            const int64_t offsets[6] = {-1, 1, -sy, sy, -sz, sz};
+            const bool valid[6] = {x > 0, x + 1 < dims.x, y > 0, y + 1 < dims.y, z > 0, z + 1 < dims.z};
+            for (int k = 0; k < 6; ++k) {
+                if (!valid[k]) continue;
+                const uint32_t j = uint32_t(int64_t(i) + offsets[k]);
+                if (cells[j] && !scratch[j]) {
+                    scratch[j] = 1;
+                    stack.push_back(j);
+                }
+            }
+        }
+        ++pieces;
+        total += count;
+        if (count > bestCount) {
+            bestCount = count;
+            bestSeed = uint32_t(seed);
+        }
+    }
+    removed = total - bestCount;
+    if (pieces > 1) {
+        std::fill(scratch.begin(), scratch.end(), 0);
+        scratch[bestSeed] = 1;
+        stack.assign(1, bestSeed);
+        flood(cells, dims, stack, scratch);
+        cells.swap(scratch);
+    }
+    return pieces;
+}
+
 struct SplatKernel {
     vec3 p{0.0f};
     float alpha = 0.0f;
@@ -274,7 +325,19 @@ bool splatSurface(const SplatCloud& cloud, const SplatSurfaceOptions& o, Mesh& o
     if (candidates.empty())
         return fail(st.cropped ? "No splats inside the crop box" : "No splats are opaque enough - lower the minimum opacity");
 
+    // The percentile box only finds the far outliers: everything within a quarter of its size around it counts
+    // (a nose tip or a raised hand is an extreme along its axis, not an outlier).
     AABB box = trimmedBounds(candidatePos, std::clamp(o.keepFraction, 0.5f, 1.0f));
+    {
+        const vec3 reach = 0.25f * box.extent();
+        AABB wide = box;
+        wide.min -= reach;
+        wide.max += reach;
+        AABB fit;
+        for (const vec3& p : candidatePos)
+            if (inside(wide, p)) fit.expand(p);
+        if (fit.valid()) box = fit;
+    }
     const float boxSize = std::max({box.extent().x, box.extent().y, box.extent().z});
     if (!(boxSize > 0.0f)) return fail("The splats have no extent");
     box.min -= box.extent() * 0.02f + vec3(1e-6f);
@@ -386,6 +449,13 @@ bool splatSurface(const SplatCloud& cloud, const SplatSurfaceOptions& o, Mesh& o
     morph(wall, dims, closeRadius, true);
     if (!tick(progress, 0.62f)) return fail("Cancelled");
 
+    // Floaters go first: shell pieces apart from the subject would box in the empty space around it.
+    if (!o.keepAllParts) {
+        std::vector<uint8_t> scratch;
+        size_t removed = 0;
+        st.pieces = keepLargestPiece(wall, dims, scratch, removed);
+        st.floaterVoxels = removed;
+    }
     std::vector<uint8_t> block = wall;
     if (o.fillHoles) {
         // Count the axis directions in which each empty cell sees the shell; 5 or 6 of 6 = enclosed.
@@ -439,55 +509,15 @@ bool splatSurface(const SplatCloud& cloud, const SplatSurfaceOptions& o, Mesh& o
     morph(solid, dims, closeRadius, false);
     if (!tick(progress, 0.72f)) return fail("Cancelled");
 
-    // Pieces: count each, keep the largest (unless keepAllParts).
-    std::vector<uint8_t>& visited = outside; // reuse
-    std::fill(visited.begin(), visited.end(), 0);
-    size_t bestCount = 0, total = 0;
-    uint32_t bestSeed = 0;
-    for (size_t seed = 0; seed < n; ++seed) {
-        if (!solid[seed] || visited[seed]) continue;
-        visited[seed] = 1;
-        stack.assign(1, uint32_t(seed));
-        // Count while flooding.
-        size_t count = 0;
-        const int64_t sy = dims.x, sz = int64_t(dims.x) * dims.y;
-        while (!stack.empty()) {
-            const uint32_t i = stack.back();
-            stack.pop_back();
-            ++count;
-            const int x = int(i % uint32_t(dims.x));
-            const int y = int((i / uint32_t(dims.x)) % uint32_t(dims.y));
-            const int z = int(i / uint32_t(sz));
-            const int64_t offsets[6] = {-1, 1, -sy, sy, -sz, sz};
-            const bool valid[6] = {x > 0, x + 1 < dims.x, y > 0, y + 1 < dims.y, z > 0, z + 1 < dims.z};
-            for (int k = 0; k < 6; ++k) {
-                if (!valid[k]) continue;
-                const uint32_t j = uint32_t(int64_t(i) + offsets[k]);
-                if (solid[j] && !visited[j]) {
-                    visited[j] = 1;
-                    stack.push_back(j);
-                }
-            }
-        }
-        ++st.pieces;
-        total += count;
-        if (count > bestCount) {
-            bestCount = count;
-            bestSeed = uint32_t(seed);
-        }
+    // Pieces: keep the largest (unless keepAllParts).
+    std::vector<uint8_t>& visited = outside; // reuse as scratch
+    if (!o.keepAllParts) {
+        size_t removed = 0;
+        st.pieces = std::max(st.pieces, keepLargestPiece(solid, dims, visited, removed));
+        st.floaterVoxels += removed;
     }
-    if (bestCount == 0) return fail("No closed surface was found - try more Detail, a lower opacity or a bigger crop box");
-    if (!o.keepAllParts && st.pieces > 1) {
-        std::fill(visited.begin(), visited.end(), 0);
-        visited[bestSeed] = 1;
-        stack.assign(1, bestSeed);
-        flood(solid, dims, stack, visited);
-        solid.swap(visited);
-        st.floaterVoxels = total - bestCount;
-        st.solidVoxels = bestCount;
-    } else {
-        st.solidVoxels = total;
-    }
+    st.solidVoxels = size_t(std::count(solid.begin(), solid.end(), uint8_t(1)));
+    if (st.solidVoxels == 0) return fail("No closed surface was found - try more Detail, a lower opacity or a bigger crop box");
     st.solidSeconds = secondsSince(t1);
     if (!tick(progress, 0.78f)) return fail("Cancelled");
 
@@ -526,6 +556,19 @@ SplatColorSampler::SplatColorSampler(const SplatCloud& cloud, float radius, floa
         b.expand(p);
     }
     if (pos.empty()) return;
+    // At least about two splats across: with fine Detail the voxels get smaller than the splats, and a radius
+    // of a voxel or two would average too few of them (mottled colour).
+    {
+        std::vector<float> sizes;
+        const float s = cloud.transformScale();
+        const size_t step = std::max<size_t>(1, cloud.size() / 20000);
+        for (size_t i = 0; i < cloud.size(); i += step)
+            if (cloud.opacities[i] >= minOpacity) sizes.push_back(std::max({cloud.scales[i].x, cloud.scales[i].y, cloud.scales[i].z}) * s);
+        if (!sizes.empty()) {
+            std::nth_element(sizes.begin(), sizes.begin() + std::ptrdiff_t(sizes.size() / 2), sizes.end());
+            radius_ = std::max(radius_, 2.5f * sizes[sizes.size() / 2]);
+        }
+    }
     cell_ = radius_;
     const vec3 ext = b.extent() + vec3(1e-6f);
     // At most ~32M cells.
@@ -601,18 +644,43 @@ size_t colorFromSplats(Mesh& mesh, const SplatColorSampler& sampler) {
     const size_t nv = mesh.vertexCount();
     if (mesh.normals.size() != nv) mesh.recomputeAllNormals();
     std::vector<glm::vec3>& colors = mesh.ensureColors();
-    std::atomic<size_t> missed{0};
+    std::vector<uint8_t> found(nv, 0);
     parallelFor(nv, [&](size_t b, size_t e) {
-        size_t m = 0;
         for (size_t v = b; v < e; ++v) {
-            bool found = false;
-            colors[v] = sampler.sample(mesh.positions[v], mesh.normals[v], &found);
-            m += found ? 0 : 1;
+            bool ok = false;
+            colors[v] = sampler.sample(mesh.positions[v], mesh.normals[v], &ok);
+            found[v] = ok ? 1 : 0;
         }
-        missed += m;
     }, 2048);
+    const size_t missed = size_t(std::count(found.begin(), found.end(), uint8_t(0)));
+    // Vertices with no splat near (a hole in the capture) take their coloured neighbours' mean, spreading inwards.
+    for (int pass = 0; pass < 64 && missed > 0; ++pass) {
+        std::vector<glm::vec3> sum(nv, glm::vec3(0.0f));
+        std::vector<uint32_t> count(nv, 0);
+        for (const glm::uvec3& t : mesh.triangles)
+            for (int k = 0; k < 3; ++k) {
+                const uint32_t a = t[k];
+                if (found[a]) continue;
+                for (int j = 1; j < 3; ++j) {
+                    const uint32_t b = t[(k + j) % 3];
+                    if (found[b] == 1) {
+                        sum[a] += colors[b];
+                        ++count[a];
+                    }
+                }
+            }
+        bool any = false;
+        for (size_t v = 0; v < nv; ++v)
+            if (!found[v] && count[v]) {
+                colors[v] = sum[v] / float(count[v]);
+                found[v] = 2; // coloured this pass: a source from the next pass on
+                any = true;
+            }
+        for (uint8_t& f : found) f = f ? 1 : 0;
+        if (!any) break;
+    }
     mesh.markAllDirty();
-    return missed.load();
+    return missed;
 }
 
 void textureFromSplats(Mesh& mesh, const SplatColorSampler& sampler, int size) {
@@ -1213,7 +1281,7 @@ std::string SculptableResult::report() const {
     } else if (!faceNote.empty()) {
         s += " (" + faceNote + ")";
     }
-    if (uncolored > 0) s += ", " + std::to_string(uncolored) + " vertices had no colour nearby";
+    if (uncolored > 0) s += ", " + std::to_string(uncolored) + " vertices with no splats near took their neighbours' colour";
     return s;
 }
 
@@ -1337,11 +1405,21 @@ bool finishSculptable(const SplatCloud& cloud, const SculptableOptions& o, Sculp
     return tick(progress, 1.0f) || (error = "Cancelled", false);
 }
 
-std::string applySculptable(Document& doc, SculptableResult& res, bool keepScan) {
-    const std::string base = doc.splats.name.empty() ? std::string("Scan") : doc.splats.name;
-    // An untouched starting sphere makes way (hidden, not deleted).
+namespace {
+
+// An untouched starting sphere makes way for the scan (hidden, not deleted).
+void hideStartingSphere(Document& doc) {
     if (doc.subtoolCount() == 1 && !doc.undo.canUndo() && doc.mesh.layers.empty() && !doc.mesh.hasColors())
         doc.activeSubtoolInfo().visible = false;
+}
+
+std::string captureName(const Document& doc) { return doc.splats.name.empty() ? std::string("Scan") : doc.splats.name; }
+
+} // namespace
+
+std::string applySculptable(Document& doc, SculptableResult& res, bool keepScan) {
+    const std::string base = captureName(doc);
+    hideStartingSphere(doc);
     if (keepScan) {
         const int s = doc.addSubtool(std::move(res.scan), doc.uniqueSubtoolName(base + " Scan"), false);
         doc.subtools[size_t(s)].visible = false;
@@ -1352,6 +1430,55 @@ std::string applySculptable(Document& doc, SculptableResult& res, bool keepScan)
     doc.qremeshGuides = res.guides;
     doc.modified = true;
     return report;
+}
+
+std::string applySculptableScan(Document& doc, SculptableResult& res) {
+    hideStartingSphere(doc);
+    const size_t splats = res.surface.used;
+    doc.addSubtool(std::move(res.scan), doc.uniqueSubtoolName(captureName(doc) + " Scan"), true);
+    doc.qremeshGuides = res.guides;
+    doc.modified = true;
+    char buf[160];
+    std::snprintf(buf, sizeof buf, "Scan: %zu triangles from %zu splats in %.1f s", doc.mesh.triangleCount(), splats, res.seconds);
+    std::string msg = buf;
+    if (res.landmarks.valid) {
+        size_t loops = 0;
+        for (const QRemeshGuide& g : res.guides) loops += g.closed;
+        msg += "; face guides: " + std::to_string(loops) + " loops; landmarks " + faceLandmarksJson(res.landmarks);
+    } else if (!res.faceNote.empty()) {
+        msg += " (" + res.faceNote + ")";
+    }
+    return msg;
+}
+
+std::string applySculptableFinish(Document& doc, SculptableResult& res, int scanIndex, bool keepScan) {
+    if (scanIndex < 0 || scanIndex >= doc.subtoolCount()) scanIndex = doc.activeSubtool;
+    // "Head Scan" -> "Head", "Head Scan 2" -> "Head 2"; another name gets " Quads".
+    const std::string name = doc.subtools[size_t(scanIndex)].name;
+    std::string base = name + " Quads";
+    if (const size_t at = name.rfind(" Scan"); at != std::string::npos && at > 0) {
+        const std::string rest = name.substr(at + 5);
+        if (rest.empty() || (rest.size() > 1 && rest[0] == ' ' && rest.find_first_not_of("0123456789", 1) == std::string::npos))
+            base = name.substr(0, at) + rest;
+    }
+    const size_t faces = res.mesh.triangleCount() - res.mesh.quadCount();
+    const int levels = subdivLevelCount(res.mesh);
+    const uint32_t scanId = doc.subtools[size_t(scanIndex)].id;
+    doc.addSubtool(std::move(res.mesh), doc.uniqueSubtoolName(base), true, scanIndex + 1);
+    doc.qremeshGuides = res.guides;
+    for (int i = 0; i < doc.subtoolCount(); ++i) {
+        if (doc.subtools[size_t(i)].id != scanId) continue;
+        if (keepScan) doc.subtools[size_t(i)].visible = false;
+        else doc.removeSubtool(i);
+        break;
+    }
+    doc.modified = true;
+    char buf[200];
+    std::snprintf(buf, sizeof buf, "Made sculptable: %zu polygons%s in %.1f s", faces,
+                  levels > 1 ? (", " + std::to_string(levels) + " levels").c_str() : "", res.seconds);
+    std::string msg = buf;
+    if (!res.guides.empty()) msg += ", along " + std::to_string(res.guides.size()) + " face guides";
+    return msg;
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -1582,8 +1709,9 @@ bool parseBox(const std::string& s, AABB& out) {
     return true;
 }
 
-// Options from command arguments; false with `error` on a bad value.
-bool sculptableOptions(const Args& a, SculptableOptions& o, std::string& error) {
+} // namespace
+
+bool sculptableOptionsFromArgs(const Args& a, SculptableOptions& o, std::string& error) {
     SplatSurfaceOptions& s = o.surface;
     s.resolution = int(argNumber(a, "detail", argNumber(a, "resolution", s.resolution)));
     s.minOpacity = float(argNumber(a, "min_opacity", s.minOpacity));
@@ -1645,8 +1773,6 @@ bool sculptableOptions(const Args& a, SculptableOptions& o, std::string& error) 
     return true;
 }
 
-} // namespace
-
 void registerSculptableCommands(CommandRegistry& reg) {
     reg.add({"splat_to_mesh",
              "Make sculptable: turn the Gaussian-splat capture into a clean, sculptable SubTool with the capture's "
@@ -1680,7 +1806,7 @@ void registerSculptableCommands(CommandRegistry& reg) {
              [](Document& doc, const Args& a) -> CommandResult {
                  SculptableOptions o;
                  std::string err;
-                 if (!sculptableOptions(a, o, err)) return {false, err};
+                 if (!sculptableOptionsFromArgs(a, o, err)) return {false, err};
                  const std::string stage = argString(a, "stage", "all");
                  if (stage != "all" && stage != "scan" && stage != "finish") return {false, "stage must be all, scan or finish"};
                  SculptableResult res;
@@ -1697,33 +1823,11 @@ void registerSculptableCommands(CommandRegistry& reg) {
                      res.surface.cell = std::max({b.extent().x, b.extent().y, b.extent().z}) / float(std::max(o.surface.resolution, 32));
                      if (doc.splats.empty() && o.color != SculptableColor::None) o.color = SculptableColor::None;
                      if (!finishSculptable(doc.splats, o, res, err)) return {false, err};
-                     const int scanIndex = doc.activeSubtool;
-                     const std::string name = doc.activeSubtoolInfo().name;
-                     const std::string base = name.size() > 5 && name.ends_with(" Scan") ? name.substr(0, name.size() - 5) : name;
-                     doc.addSubtool(std::move(res.mesh), doc.uniqueSubtoolName(base), true);
-                     doc.qremeshGuides = res.guides;
-                     if (argBool(a, "keep_scan", true)) doc.subtools[size_t(scanIndex)].visible = false;
-                     else doc.removeSubtool(scanIndex);
-                     doc.modified = true;
-                     const size_t faces = doc.mesh.triangleCount() - doc.mesh.quadCount();
-                     return {true, "Made sculptable: " + std::to_string(faces) + " polygons" +
-                                       (res.guides.empty() ? std::string() : " along " + std::to_string(res.guides.size()) + " guides")};
+                     return {true, applySculptableFinish(doc, res, doc.activeSubtool, argBool(a, "keep_scan", true))};
                  }
                  if (doc.splats.empty()) return {false, "No splats loaded"};
                  if (!makeSculptableScan(doc.splats, o, res, err)) return {false, err};
-                 if (stage == "scan") {
-                     const std::string base = doc.splats.name.empty() ? std::string("Scan") : doc.splats.name;
-                     if (doc.subtoolCount() == 1 && !doc.undo.canUndo() && doc.mesh.layers.empty() && !doc.mesh.hasColors())
-                         doc.activeSubtoolInfo().visible = false;
-                     doc.addSubtool(std::move(res.scan), doc.uniqueSubtoolName(base + " Scan"), true);
-                     doc.qremeshGuides = res.guides;
-                     doc.modified = true;
-                     std::string msg = "Scan: " + std::to_string(doc.mesh.triangleCount()) + " triangles from " +
-                                       std::to_string(res.surface.used) + " splats";
-                     if (res.landmarks.valid) msg += "; face guides: " + std::to_string(res.guides.size()) + "; landmarks " + faceLandmarksJson(res.landmarks);
-                     else if (!res.faceNote.empty()) msg += " (" + res.faceNote + ")";
-                     return {true, msg};
-                 }
+                 if (stage == "scan") return {true, applySculptableScan(doc, res)};
                  if (!finishSculptable(doc.splats, o, res, err)) return {false, err};
                  return {true, applySculptable(doc, res, argBool(a, "keep_scan", true))};
              }});
