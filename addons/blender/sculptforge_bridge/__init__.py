@@ -212,6 +212,32 @@ def update_object(obj, g):
     return result
 
 
+def apply_shapes(obj, path):
+    """Shape keys from a SculptForge shapes file (exchange.read_shapes) on a received object: a Basis, then one
+    key per sculpt layer, named as in SculptForge (the facial shapes keep their ARKit names), at its weight."""
+    try:
+        nv, shapes = exchange.read_shapes(path)
+    except (OSError, ValueError):
+        return 0  # the mesh still arrives, without its shape keys
+    me = obj.data
+    if nv != len(me.vertices) or not shapes:
+        return 0
+    if me.shape_keys is None:
+        obj.shape_key_add(name="Basis", from_mix=False)
+    basis = np.empty(nv * 3, dtype=np.float64)
+    me.shape_keys.reference_key.data.foreach_get("co", basis)
+    basis = basis.reshape(-1, 3)
+    to_local = np.linalg.inv(np.array(obj.matrix_world, dtype=np.float64))[:3, :3]
+    for name, weight, idx, off in shapes:
+        key = me.shape_keys.key_blocks.get(name) or obj.shape_key_add(name=name, from_mix=False)
+        co = basis.copy()
+        co[idx] += off @ to_local.T  # offsets are world-space vectors
+        key.data.foreach_set("co", np.ascontiguousarray(co, dtype=np.float32).ravel())
+        key.value = max(key.slider_min, min(key.slider_max, weight))
+    me.update()
+    return len(shapes)
+
+
 def new_object(context, name, g):
     me = bpy.data.meshes.new(name)
     loops = set_geometry(me, g.positions, g.faces)
@@ -355,7 +381,8 @@ def receive(context):
     meshes = []
     for entry in entries:
         try:
-            meshes.append((entry.get("name") or "Object", exchange.read_goz(os.path.join(folder, entry["file"]))))
+            meshes.append((entry.get("name") or "Object", exchange.read_goz(os.path.join(folder, entry["file"])),
+                           os.path.join(folder, entry["shapes"]) if entry.get("shapes") else None))
         except (OSError, ValueError) as e:
             return "ERROR", "Cannot read %s from SculptForge: %s" % (entry.get("name", "?"), e)
 
@@ -365,16 +392,21 @@ def receive(context):
 
     counts = {"updated": 0, "rebuilt": 0, "new": 0}
     disabled = 0
+    keys = 0
     previous = context.mode
     try:
-        with _object_mode(context, [target(n) for n, _ in meshes]):  # back to the previous mode afterwards
-            for name, g in meshes:
+        with _object_mode(context, [target(n) for n, _, _ in meshes]):  # back to the previous mode afterwards
+            for name, g, shapes in meshes:
                 obj = target(name)
                 if obj is None:
-                    new_object(context, name, g)
+                    obj = new_object(context, name, g)
                     counts["new"] += 1
+                    if shapes:
+                        keys += apply_shapes(obj, shapes)
                     continue
                 counts[update_object(obj, g)] += 1
+                if shapes:
+                    keys += apply_shapes(obj, shapes)
                 applied = obj.get(APPLIED_KEY)
                 if applied is not None:  # those modifiers are in the mesh now
                     for m in obj.modifiers:
@@ -394,6 +426,8 @@ def receive(context):
     message = "Received %d object%s from SculptForge (%s)" % (len(meshes), "" if len(meshes) == 1 else "s", ", ".join(parts))
     if disabled:
         message += "; turned off %d modifier%s applied when sending" % (disabled, "" if disabled == 1 else "s")
+    if keys:
+        message += "; %d shape key%s" % (keys, "" if keys == 1 else "s")
     return "INFO", message
 
 

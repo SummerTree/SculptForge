@@ -5,6 +5,18 @@ chapter opens by itself the first time you start a new version; you can always f
 **Help > What's New**. Every detail is in the
 [changelog](https://github.com/islandmed/SculptForge/blob/main/CHANGELOG.md).
 
+## Next version (in development)
+
+### Facial shapes and live face
+
+**Tool > Facial Shapes > Generate Facial Shapes** gives a sculpted head the 52 Apple ARKit blend shapes
+(`eyeBlinkLeft`, `jawOpen`, `mouthSmileRight`, ...) as sculpt layers, fitted to its proportions from a template head
+with those shapes (ICT-FaceKit, MIT licence). Eyes, teeth and tongue SubTools get theirs too. Fix any shape by
+sculpting into its layer, check them with the **Face test** presets and sliders, and export them with their ARKit
+names to GLB, USD, FBX and Blender (as shape keys). `face_weights` drives them live from a face feed, and recorded
+takes play in the viewport and bake into a glTF animation or USD time samples. `new_head` starts a scene with a
+human head to sculpt on. See [Facial shapes and live face](facial-shapes.md).
+
 ## Version 0.8.1
 
 Fixes from a ZBrush artist's testing, and a way to bring your ZTools over.

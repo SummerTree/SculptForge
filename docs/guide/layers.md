@@ -46,7 +46,8 @@ The title strip shows the active layer (`Layer Smile`, or `Layer Base`).
 A layer whose weight is 0 can't be sculpted into: SculptForge tells you to raise the weight first.
 
 > **Tip:** Name layers the way your engine or rig expects (`jawOpen`, `BlinkL`): the names become the blend shape
-> and morph target names in exported files.
+> and morph target names in exported files. For a face, **Tool > Facial Shapes** makes all 52 ARKit shapes for you:
+> see [Facial shapes and live face](facial-shapes.md).
 
 ## Adjust and preview weights
 

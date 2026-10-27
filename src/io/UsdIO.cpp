@@ -112,7 +112,8 @@ void writeExtent(Writer& w, const AABB& b) {
 }
 
 // One mesh prim `prim` under the root (a SkelRoot holding the Mesh when it has blend shapes).
-void writeMesh(Writer& w, const Mesh& mesh, const std::string& root, const std::string& prim, const std::string& material) {
+void writeMesh(Writer& w, const Mesh& mesh, const std::string& root, const std::string& prim, const std::string& material,
+               const MorphAnimation* animation) {
     const bool skinned = !mesh.layers.empty();
     const std::string meshPath = skinned ? "/" + root + "/" + prim + "/Mesh" : "/" + root + "/" + prim;
     // Unique, valid names for the blend shapes.
@@ -220,6 +221,31 @@ void writeMesh(Writer& w, const Mesh& mesh, const std::string& root, const std::
         w.open("def SkelAnimation \"Weights\"");
         w.array("uniform token[] blendShapes", shapeNames, [&](const std::string& n) { w.s += quoted(n); });
         w.array("float[] blendShapeWeights", mesh.layers, [&](const SculptLayer& l) { w.num(l.weight); });
+        if (animation && !animation->empty()) {
+            // Keys for the shapes the animation names (the rest at their current weight), at time codes in frames.
+            std::vector<int> channelOf;
+            bool any = false;
+            for (const auto& l : mesh.layers) {
+                channelOf.push_back(animation->channel(l.name));
+                any |= channelOf.back() >= 0;
+            }
+            if (any) {
+                w.line("float[] blendShapeWeights.timeSamples = {");
+                ++w.depth;
+                for (size_t k = 0; k < animation->times.size(); ++k) {
+                    w.indent();
+                    w.num(std::round(animation->times[k] * animation->fps * 1000.0f) / 1000.0f);
+                    w.s += ": [";
+                    for (size_t i = 0; i < channelOf.size(); ++i) {
+                        if (i) w.s += ", ";
+                        w.num(channelOf[i] >= 0 ? animation->value(k, size_t(channelOf[i])) : mesh.layers[i].weight);
+                    }
+                    w.s += "],\n";
+                }
+                --w.depth;
+                w.line("}");
+            }
+        }
         w.close();
         w.close();
         w.close();
@@ -313,7 +339,7 @@ void writeTextureMaterial(Writer& w, const std::string& path, const std::string&
 
 // `textures`: per mesh, the PNG asset path its material reads ("" = no texture).
 std::string buildUsda(const std::vector<MeshObjectRef>& meshes, const std::vector<std::string>& textures,
-                      const SplatCloud* splats, const std::string& name) {
+                      const SplatCloud* splats, const std::string& name, const MorphAnimation* animation) {
     const std::string root = usdIdentifier(name.empty() ? "Sculpt" : name);
     // Textured meshes bind a material of their own. Of the others, polypainted ones bind a material that
     // reads their colours; with a mix, plain ones bind "Clay".
@@ -332,6 +358,22 @@ std::string buildUsda(const std::vector<MeshObjectRef>& meshes, const std::vecto
     w.line("    doc = \"Created with SculptForge\"");
     w.line("    metersPerUnit = 1");
     w.line("    upAxis = \"Y\"");
+    if (animation && !animation->empty()) {
+        w.indent();
+        w.s += "    startTimeCode = 0\n";
+        w.indent();
+        w.s += "    endTimeCode = ";
+        w.num(std::round(animation->duration() * animation->fps * 1000.0f) / 1000.0f);
+        w.s += "\n";
+        w.indent();
+        w.s += "    timeCodesPerSecond = ";
+        w.num(animation->fps);
+        w.s += "\n";
+        w.indent();
+        w.s += "    framesPerSecond = ";
+        w.num(animation->fps);
+        w.s += "\n";
+    }
     w.line(")");
     w.s += '\n';
     w.line("def Xform " + quoted(root) + " (");
@@ -357,7 +399,7 @@ std::string buildUsda(const std::vector<MeshObjectRef>& meshes, const std::vecto
                 textured.push_back({prim + "_Material", textures[i]});
                 material = "/" + root + "/Materials/" + textured.back().first;
             }
-            writeMesh(w, *m.mesh, root, prim, material);
+            writeMesh(w, *m.mesh, root, prim, material, animation);
             w.s += '\n';
         }
         w.open("def Scope \"Materials\"");
@@ -985,7 +1027,7 @@ bool saveUsd(const std::string& path, const Mesh* mesh, const SplatCloud* splats
 }
 
 bool saveUsd(const std::string& path, const std::vector<MeshObjectRef>& meshesIn, const SplatCloud* splats,
-             const std::string& name, std::string& error) {
+             const std::string& name, std::string& error, const MorphAnimation* animation) {
     std::vector<MeshObjectRef> meshes;
     for (const auto& m : meshesIn)
         if (m.mesh && m.mesh->triangleCount() > 0) meshes.push_back(m);
@@ -1007,7 +1049,7 @@ bool saveUsd(const std::string& path, const std::vector<MeshObjectRef>& meshesIn
     }
     // Textures: PNGs inside a .usdz package, else beside the layer; asset paths are relative to the layer.
     const std::vector<std::string> pngs = textureFileNames(path, meshes);
-    const std::string text = buildUsda(meshes, pngs, hasSplats ? splats : nullptr, name);
+    const std::string text = buildUsda(meshes, pngs, hasSplats ? splats : nullptr, name, animation);
     if (ext == ".usdz") {
         std::string inner = usdIdentifier(name.empty() ? "Sculpt" : name) + ".usda";
         std::vector<ZipEntry> entries = {{inner, std::vector<uint8_t>(text.begin(), text.end())}};

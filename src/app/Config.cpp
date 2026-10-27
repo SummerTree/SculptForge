@@ -366,6 +366,7 @@ void App::initActions() {
     registerBakeUiActions();    // Tool > Bake (PanelBake.cpp)
     registerRetopoUiActions(); // Geometry > QRemesh, SubTool > ProjectAll (PanelRetopo.cpp)
     registerVdmActions();      // Brush > Vector Displacement (PanelVdm.cpp)
+    registerFaceUiActions();   // Tool > Facial Shapes, face_take_play / face_take_stop (PanelFace.cpp)
     registerPerformanceUiActions(); // Preferences > Performance (PanelPerformance.cpp)
     registerInputActions();     // ZBrush keys: U I O, Space, L, V, Ctrl+A / I / H / W..., the input style (Input.cpp)
 

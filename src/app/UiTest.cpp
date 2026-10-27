@@ -26,7 +26,8 @@
 //   gizmo_hover HANDLE       move the mouse onto a Gizmo 3D handle (it lights up, for screenshots)
 //   orbit DX DY              right-drag on the background, in pixels (with the held modifiers)
 //   camera YAW PITCH         set the view's angles in degrees (0 0 = the front view), e.g. for guide screenshots
-//   run COMMANDS             sculptforge-cli commands, e.g. run new_sphere subdivisions=4
+//   zoom FACTOR / look X Y Z  move the camera FACTOR times closer / turn it about (and look at) the point X Y Z
+//   run COMMANDS             sculptforge-cli commands, e.g. run new_sphere subdivisions=4 ($SCRIPT_DIR: the script's folder)
 //   drop FILE                as if FILE were dropped onto the window (relative to the script's folder)
 //   env NAME VALUE           set an environment variable; $SCRIPT_DIR is the script's folder
 //   copy SRC DST             copy a file or folder (SRC relative to the script's folder, DST to the working
@@ -293,6 +294,15 @@ double Demo::query(const std::string& name, bool& known) const {
     if (name == "lazy_mouse") return app_.strokeType_ == StrokeType::LazyMouse ? 1.0 : 0.0;
     if (name == "stroke_type") return double(int(app_.strokeType_)); // 0 Dots, 1 DragRect, 2 DragDot, 3 Spray, 4 LazyMouse
     if (name == "vdms") return double(app_.doc_.vdms.size());
+    // Facial shapes (PanelFace.cpp): landmarks placed, placing them, a take playing, and face_<shape>: that layer's weight.
+    if (name == "face_landmarks") return double(app_.faceLandmarks_.count());
+    if (name == "face_placing") return app_.facePlacing_ ? 1.0 : 0.0;
+    if (name == "face_take_playing") return app_.faceTakePlaying_ ? 1.0 : 0.0;
+    if (name.rfind("face_", 0) == 0) {
+        for (const auto& l : m.layers)
+            if (l.name == name.substr(5)) return double(l.weight);
+        return -1.0; // no such layer
+    }
     if (name == "input_style") return double(app_.uiPrefs_.inputStyle);
     if (name == "mask_shape") return double(int(app_.maskShape_)); // 0 MaskPen, 1 MaskLasso, 2 MaskRect
     if (name == "hide_shape") return double(int(app_.hideShape_)); // 1 SelectLasso, 2 SelectRect
@@ -783,6 +793,14 @@ bool Demo::parseStep(int line, const std::vector<std::string>& w, std::string& e
             app_.camera_.roll = 0.0f;
         });
         wait(0.1f);
+    } else if (verb == "zoom") { // zoom FACTOR: the camera's distance divided by FACTOR
+        if (!need(1)) return false;
+        run([this, f = num(1, 1)] { app_.camera_.distance /= std::max(float(f), 1e-3f); });
+        wait(0.1f);
+    } else if (verb == "look") { // look X Y Z: the camera turns about (and looks at) this point
+        if (!need(3)) return false;
+        run([this, x = num(1, 0), y = num(2, 0), z = num(3, 0)] { app_.camera_.target = glm::vec3(float(x), float(y), float(z)); });
+        wait(0.1f);
     } else if (verb == "drop") {
         if (!need(1)) return false;
         auto file = std::filesystem::path(std::u8string(w[1].begin(), w[1].end()));
@@ -815,7 +833,12 @@ bool Demo::parseStep(int line, const std::vector<std::string>& w, std::string& e
     } else if (verb == "run") {
         if (!need(1)) return false;
         std::vector<ScriptStatement> statements;
-        if (!parseScript(restOf(lineText_, 1), statements, error)) return false;
+        std::string text = restOf(lineText_, 1);
+        for (size_t at = text.find("$SCRIPT_DIR"); at != std::string::npos; at = text.find("$SCRIPT_DIR", at)) {
+            text.replace(at, 11, scriptDir_);
+            at += scriptDir_.size();
+        }
+        if (!parseScript(text, statements, error)) return false;
         run([this, line, statements] {
             for (const auto& st : statements) {
                 app_.runCommand(st.command, st.args);

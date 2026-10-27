@@ -30,32 +30,33 @@ You can read it inside SculptForge (**Help > User Guide**, or <kbd>Shift</kbd>+<
 12. [Polypaint and materials](polypaint.md)
 13. [Texture painting](texture-painting.md)
 14. [Sculpt layers and blend shapes](layers.md)
-15. [Subdivision levels](subdivision-levels.md)
-16. [Dynamic topology](dynamic-topology.md)
-17. [Moving, rotating and posing (Gizmo 3D)](gizmo.md)
-18. [Subdivide, remesh, decimate and LODs](geometry.md)
-19. [Quad retopology and detail projection](retopology.md)
+15. [Facial shapes and live face](facial-shapes.md)
+16. [Subdivision levels](subdivision-levels.md)
+17. [Dynamic topology](dynamic-topology.md)
+18. [Moving, rotating and posing (Gizmo 3D)](gizmo.md)
+19. [Subdivide, remesh, decimate and LODs](geometry.md)
+20. [Quad retopology and detail projection](retopology.md)
 
 ## AI and capture
 
-20. [Image and text to 3D](generate-3d.md)
-21. [Gaussian splats](splats.md)
+21. [Image and text to 3D](generate-3d.md)
+22. [Gaussian splats](splats.md)
 
 ## Files and pipelines
 
-22. [Baking normal and displacement maps](baking.md)
-23. [Exporting, Unreal and ZBrush](exporting.md)
-24. [Working with Blender](blender.md)
-25. [Projects, autosave and QuickSave](projects.md)
-26. [Scripting and automation](scripting.md)
-27. [SculptForge for studios](studios.md)
+23. [Baking normal and displacement maps](baking.md)
+24. [Exporting, Unreal and ZBrush](exporting.md)
+25. [Working with Blender](blender.md)
+26. [Projects, autosave and QuickSave](projects.md)
+27. [Scripting and automation](scripting.md)
+28. [SculptForge for studios](studios.md)
 
 ## Reference
 
-28. [Keyboard and mouse](shortcuts.md)
-29. [Performance and big meshes](performance.md)
-30. [Troubleshooting and FAQ](troubleshooting.md)
-31. [Glossary](glossary.md)
+29. [Keyboard and mouse](shortcuts.md)
+30. [Performance and big meshes](performance.md)
+31. [Troubleshooting and FAQ](troubleshooting.md)
+32. [Glossary](glossary.md)
 
 ## Getting help
 

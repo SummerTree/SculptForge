@@ -10,6 +10,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -141,6 +142,11 @@ bool parseBridgeManifest(const std::string& text, BridgeManifest& out, std::stri
             error = "Bridge manifest names a bad file: \"" + b.file + "\"";
             return false;
         }
+        b.shapes = o["shapes"].asString();
+        if (!b.shapes.empty() && !plainFileName(b.shapes)) {
+            error = "Bridge manifest names a bad file: \"" + b.shapes + "\"";
+            return false;
+        }
         const Json& mw = o["matrix_world"];
         if (mw.isArray()) {
             // Rows, as Blender prints a Matrix: matrix_world[row][column].
@@ -175,6 +181,7 @@ std::string writeBridgeManifest(const BridgeManifest& m) {
         const BridgeObject& o = m.objects[i];
         s += i ? ",\n    {" : "\n    {";
         s += "\"name\": " + jsonQuote(o.name) + ", \"file\": " + jsonQuote(o.file);
+        if (!o.shapes.empty()) s += ", \"shapes\": " + jsonQuote(o.shapes);
         if (o.hasMatrix) {
             s += ", \"matrix_world\": [";
             for (int r = 0; r < 4; ++r) {
@@ -197,6 +204,90 @@ bool readBridgeManifest(const std::string& path, BridgeManifest& out, std::strin
         return false;
     }
     return parseBridgeManifest(text, out, error);
+}
+
+bool writeBridgeShapes(const std::string& path, const Mesh& mesh, std::string& error) {
+    std::string data("SFSHAPES", 8);
+    auto u32 = [&](uint32_t v) { data.append(reinterpret_cast<const char*>(&v), 4); };
+    auto f32 = [&](float v) { data.append(reinterpret_cast<const char*>(&v), 4); };
+    u32(1);
+    u32(uint32_t(mesh.vertexCount()));
+    u32(uint32_t(mesh.layers.size()));
+    for (const SculptLayer& l : mesh.layers) {
+        u32(uint32_t(l.name.size()));
+        data += l.name;
+        f32(l.weight);
+        std::vector<uint32_t> idx;
+        for (uint32_t v = 0; v < l.delta.size(); ++v)
+            if (l.delta[v] != glm::vec3(0.0f)) idx.push_back(v);
+        u32(uint32_t(idx.size()));
+        for (uint32_t v : idx) u32(v);
+        for (uint32_t v : idx) {
+            const glm::dvec3 d = sculptForgeToBlender(glm::dvec3(l.delta[v])); // (linear: works for offsets)
+            f32(float(d.x));
+            f32(float(d.y));
+            f32(float(d.z));
+        }
+    }
+    if (!writeAtomically(utf8Path(path), data)) {
+        error = "Cannot write " + path;
+        return false;
+    }
+    return true;
+}
+
+bool readBridgeShapes(const std::string& path, uint32_t& vertexCount, std::vector<BridgeShape>& out, std::string& error) {
+    std::string data;
+    if (!readFile(utf8Path(path), data)) {
+        error = "Cannot read " + path;
+        return false;
+    }
+    size_t pos = 8;
+    bool ok = data.size() >= 20 && data.compare(0, 8, "SFSHAPES") == 0;
+    auto u32 = [&]() {
+        uint32_t v = 0;
+        if (pos + 4 > data.size()) ok = false;
+        else std::memcpy(&v, data.data() + pos, 4);
+        pos += 4;
+        return v;
+    };
+    auto f32 = [&]() {
+        float v = 0.0f;
+        if (pos + 4 > data.size()) ok = false;
+        else std::memcpy(&v, data.data() + pos, 4);
+        pos += 4;
+        return v;
+    };
+    if (ok && u32() != 1) ok = false;
+    vertexCount = ok ? u32() : 0;
+    const uint32_t count = ok ? u32() : 0;
+    out.clear();
+    for (uint32_t s = 0; ok && s < count; ++s) {
+        BridgeShape shape;
+        const uint32_t len = u32();
+        if (!ok || pos + len > data.size()) {
+            ok = false;
+            break;
+        }
+        shape.name.assign(data, pos, len);
+        pos += len;
+        shape.weight = f32();
+        const uint32_t n = u32();
+        if (!ok || n > vertexCount || pos + size_t(n) * 16 > data.size()) {
+            ok = false;
+            break;
+        }
+        shape.index.resize(n);
+        for (auto& v : shape.index) {
+            v = u32();
+            if (v >= vertexCount) ok = false;
+        }
+        shape.offset.resize(n);
+        for (auto& o : shape.offset) o = {f32(), f32(), f32()};
+        out.push_back(std::move(shape));
+    }
+    if (!ok) error = path + " is not a valid SculptForge shapes file";
+    return ok;
 }
 
 bool blenderReceive(const std::string& root, std::vector<MeshObject>& out, BridgeManifest* manifest,
@@ -286,7 +377,21 @@ bool blenderSend(const std::vector<MeshObjectRef>& objects, const std::string& r
         GozWriteOptions o;
         o.quads = objects[k].mesh->hasQuads(); // only kept quads: triangles of n-gons must stay triangles
         std::string err;
-        if (!saveGoz(pathUtf8(outbox / utf8Path(b.file)), *objects[k].mesh, name, err, o)) {
+        const Mesh& sent = *objects[k].mesh;
+        bool ok;
+        if (sent.layers.empty()) {
+            ok = saveGoz(pathUtf8(outbox / utf8Path(b.file)), sent, name, err, o);
+        } else {
+            // Sculpt layers go as shape keys: the .GoZ holds the base shape, the shapes file the offsets.
+            Mesh neutral = sent;
+            neutral.positions = sent.base;
+            neutral.layers.clear();
+            neutral.base.clear();
+            b.shapes = prefix + std::string(file, std::strlen(file) - 4) + ".shapes";
+            ok = saveGoz(pathUtf8(outbox / utf8Path(b.file)), neutral, name, err, o) &&
+                 writeBridgeShapes(pathUtf8(outbox / utf8Path(b.shapes)), sent, err);
+        }
+        if (!ok) {
             message = "Cannot send \"" + name + "\" to Blender: " + err;
             return false;
         }

@@ -380,6 +380,11 @@ void App::drawPalette_Tool() {
         drawLayersContents();
         Demo::popScope();
     }
+    if (subpalette("tool.face", "Facial Shapes")) {
+        Demo::pushScope("Facial Shapes");
+        drawFaceContents(); // PanelFace.cpp
+        Demo::popScope();
+    }
     if (subpalette("tool.paint_layers", "Paint Layers")) {
         Demo::pushScope("Paint Layers");
         drawPaintLayersContents();

@@ -18,6 +18,7 @@
 #pragma once
 
 #include "core/Mesh.h"
+#include "core/MorphAnimation.h"
 #include "core/Splats.h"
 #include "io/MeshObject.h"
 
@@ -30,9 +31,11 @@ bool saveUsd(const std::string& path, const Mesh* mesh, const SplatCloud* splats
              std::string& error);
 // One Mesh prim per object (SubTool) under the root Xform `name`, each with its
 // own blend shapes: a single object is the prim "Sculpt" as above, several are
-// named after the objects (made valid and unique).
+// named after the objects (made valid and unique). `animation` (optional, e.g.
+// a baked face take) adds time samples to each SkelAnimation's
+// blendShapeWeights for the shapes it names, at its fps.
 bool saveUsd(const std::string& path, const std::vector<MeshObjectRef>& meshes, const SplatCloud* splats,
-             const std::string& name, std::string& error);
+             const std::string& name, std::string& error, const MorphAnimation* animation = nullptr);
 
 // Fills whichever of `mesh` / `splats` the file contains (the other is left
 // empty; every Mesh prim is merged). Fails if it contains neither.

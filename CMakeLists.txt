@@ -98,6 +98,13 @@ add_library(sculptforge_core STATIC
   src/io/BlenderCommands.cpp
   src/io/StlIO.cpp
 )
+# Facial shapes (core/Face.h): the template head with the 52 ARKit shapes, built from ICT-FaceKit (MIT) by
+# tools/face/build_ict_template.py, embedded so the app, the CLI and the tests all have it.
+include(cmake/EmbedFile.cmake)
+embed_files(${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFace.cpp sf::assets
+  faceTemplateData ${CMAKE_CURRENT_SOURCE_DIR}/assets/face/ict-arkit.sfface)
+target_sources(sculptforge_core PRIVATE src/core/Face.cpp src/core/FaceCommands.cpp
+  ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedFace.cpp)
 target_include_directories(sculptforge_core PUBLIC src PRIVATE third_party/stb third_party/ufbx third_party/xatlas third_party/mikktspace third_party/tinyexr)
 # Third-party C code: compile quietly.
 if(MSVC)
@@ -184,6 +191,7 @@ if(SCULPTFORGE_BUILD_APP)
     src/app/Selection.cpp
     src/app/PanelBrushes.cpp
     src/app/PanelVdm.cpp
+    src/app/PanelFace.cpp
     src/app/PanelBrushLibrary.cpp
     src/app/PanelBrushGallery.cpp
     src/app/PanelPolypaint.cpp
