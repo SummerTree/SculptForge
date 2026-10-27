@@ -21,6 +21,27 @@ there is a new code. A code nobody uses expires after 10 minutes.
 > both devices, and allow SculptForge through the firewall (Windows asks the first time; choose private networks).
 > If the computer has several networks, pick the Wi-Fi one under **Network** in the window.
 
+### "This site can't be reached" on Android
+
+Recent versions of Chrome on Android can refuse to open any address on your home network, even your router's,
+and show **This site can't be reached** (under Details: `ERR_TOO_MANY_RETRIES`). Until SculptForge's capture page
+moves to the website, the simplest fix is to **use Firefox on the phone**: install it from the Play Store, open the
+address shown under the QR code (for example `http://10.0.0.117:8765`), allow it to reach devices on your local
+network when it asks, and type the 6-digit code. Firefox can also be set as the phone's default browser so the
+camera's QR links open there.
+
+### Linux firewall
+
+Many Linux desktops (Omarchy, Ubuntu with ufw enabled, Fedora with firewalld) block incoming connections, so the
+phone's request never arrives. Allow SculptForge's port from your home network only, for example with ufw:
+
+```
+sudo ufw allow from 10.0.0.0/24 to any port 8765 proto tcp comment 'SculptForge phone capture'
+```
+
+Use your own network's range (the first three numbers of the address under the QR code, then `.0/24`). With
+firewalld: `sudo firewall-cmd --add-port=8765/tcp` (add `--permanent` to keep it).
+
 ## Scan an object
 
 Tap **Scan an object**, read the tips, and tap **Record a video**. Walk slowly all the way round the object, then

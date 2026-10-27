@@ -6,6 +6,12 @@ All notable changes to SculptForge are listed here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+- Capture from phone tells you what to do when the phone can't open the page: Android Chrome can refuse every
+  home-network address ("This site can't be reached", ERR_TOO_MANY_RETRIES), so use Firefox on the phone; and Linux
+  firewalls (ufw, firewalld) need the port allowed. In the window and in the guide's Phone capture chapter.
+- Baking: Cancel is honoured on small bakes too.
+
 ## [0.9.0] - 2026-10-26
 
 Maquette to performance: scan with your phone, make the scan sculptable, give a head its facial shapes and

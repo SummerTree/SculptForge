@@ -22,6 +22,11 @@ hold ctrl
 hover "##phoneqr"
 expect_help "Point your phone's camera"
 hold none
+expect_text "Use Firefox on the phone"
+click "The phone can't open the page?"
+expect_text "ERR_TOO_MANY_RETRIES"
+shot troubleshooting
+click "The phone can't open the page?"
 shot window
 
 # Only the session's token opens the link.

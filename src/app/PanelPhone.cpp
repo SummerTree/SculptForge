@@ -408,6 +408,7 @@ void App::drawPhoneWindow() {
                  "File > Capture from phone");
     ImGui::TextUnformatted("Scan with your phone's camera");
     hint("Phone and computer on the same Wi-Fi. No app to install.");
+    hint("Page won't open? Use Firefox on the phone: some Chrome versions block home-network addresses.");
     ImGui::Spacing();
     ImGui::TextDisabled("No camera? Open this in the phone's browser:");
     ImGui::Text("http://%s", st.address.c_str());
@@ -457,6 +458,11 @@ void App::drawPhoneWindow() {
             ImGui::BulletText("Windows: allow SculptForge on private networks\nwhen the firewall asks.");
             ImGui::BulletText("macOS: allow incoming connections for SculptForge\n(System Settings > Network > Firewall).");
             ImGui::BulletText("Several networks? Pick the Wi-Fi one under Network.");
+            ImGui::BulletText("Android Chrome says \"This site can't be reached\"\n(ERR_TOO_MANY_RETRIES)? Recent Chrome versions can\n"
+                              "block every home-network address, even your router.\nUse Firefox on the phone instead and allow it to\n"
+                              "reach local devices when it asks.");
+            ImGui::BulletText("Linux: allow port %d through the firewall, e.g.\nsudo ufw allow from <your network>/24 to any\nport %d proto tcp",
+                              int(phone_->port()), int(phone_->port()));
             ImGui::TreePop();
         }
     }
