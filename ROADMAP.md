@@ -158,6 +158,17 @@ Ranked by what sculptors cite most on the ZBrush, Polycount, Blender and Mudbox 
 - ✅ Splat training from a phone video or photos with a live viewport preview (Brush, downloaded on request;
   COLMAP camera positions, or the phone's AR poses; sharpest-frame selection; Good enough - stop / Cancel)
 - 📋 Splat training: background masking of the capture, resume a stopped training, a Brush build for Linux ARM
+- ✅ File > Capture from phone: QR pairing (or a 6-digit code), LAN only, only while the window is open
+- ✅ Capture page on the phone (no app): scan video or photo burst with coaching, one photo to 3D, splat .ply from
+  Scaniverse / Polycam / Luma; resumable chunked uploads into the Captures inbox with capture.json
+- ✅ View in AR on the desk: USDZ (AR Quick Look) and GLB (Scene Viewer), decimated, colour baked, re-exported
+  after strokes
+- ✅ Live face feed: MediaPipe on the phone, 52 ARKit weights + head rotation over a WebRTC data channel
+  (libdatachannel, optional at build time), face takes as JSON Lines
+- 📋 Play back and export face takes (with the facs feature); in-page video recording with live coaching where the
+  page is secure; a QR code back from the phone for networks without internet
+- ✅ Face page at https://sculptforge.app/link/ (one constant: kPhoneLinkSiteUrl)
+- 📋 Deploy the link relay Worker (`services/link-worker`, link.sculptforge.app); then consider dropping ntfy.sh
 
 ## Phase 3 — AI assistant, beyond brushes
 

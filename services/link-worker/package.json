@@ -1,0 +1,12 @@
+{
+  "name": "sculptforge-link-worker",
+  "private": true,
+  "type": "module",
+  "description": "SculptForge link relay (Cloudflare Worker) for the phone's face page",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "test": "node --test test/",
+    "local": "node test/local-server.mjs",
+    "deploy": "npx wrangler deploy"
+  }
+}

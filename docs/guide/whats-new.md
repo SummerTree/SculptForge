@@ -16,6 +16,7 @@ sculpting into its layer, check them with the **Face test** presets and sliders,
 names to GLB, USD, FBX and Blender (as shape keys). `face_weights` drives them live from a face feed, and recorded
 takes play in the viewport and bake into a glTF animation or USD time samples. `new_head` starts a scene with a
 human head to sculpt on. See [Facial shapes and live face](facial-shapes.md).
+
 ### Scan an object into a splat
 
 Film an object with your phone, or take photos all around it, and SculptForge trains a Gaussian splat from it on
@@ -23,6 +24,7 @@ your own graphics card. The splat appears in the viewport after a few hundred st
 you can orbit around it, stop when it's good enough, or cancel. Pick **Video...** or **Photos Folder...** under
 **Splats > Train from capture**, or drop a video onto the window. The free Brush trainer is offered as a one-click
 download the first time. See [Scan an object into a splat](scan-to-splat.md).
+
 ### Make sculptable: from a scan to a production asset
 
 One click in the **Splats** palette turns a Gaussian-splat capture into a clean SubTool you can sculpt, rig and
@@ -31,6 +33,13 @@ Game, Film or Sculpt budget, edge loops round the eyes and mouth and along the n
 is a head (mirrored across the face), and the capture's colours as polypaint or a texture. A crop box cuts away
 the table or the room; Review shows the face landmarks to nudge before remeshing. The splats stay, hidden. Five
 million splats take about ten seconds on a laptop. See [From scan to sculptable mesh](scan-to-sculptable.md).
+
+### Your phone as SculptForge's camera
+
+**File > Capture from phone** shows a QR code: scan it and your phone's browser can send SculptForge a scan (walk
+round an object for 20 to 60 seconds), a photo to turn into a model, or a splat file from a scanning app. Tap
+**View in AR** to see your sculpt standing on your desk, updated as you sculpt, and **Face capture** to drive a
+character's facial shapes with your own face, live. No app to install. See [Phone capture and AR](phone-capture.md).
 
 ## Version 0.8.1
 

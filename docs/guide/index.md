@@ -43,22 +43,23 @@ You can read it inside SculptForge (**Help > User Guide**, or <kbd>Shift</kbd>+<
 22. [Gaussian splats](splats.md)
 23. [Scan an object into a splat](scan-to-splat.md)
 24. [From scan to sculptable mesh](scan-to-sculptable.md)
+25. [Phone capture and AR](phone-capture.md)
 
 ## Files and pipelines
 
-25. [Baking normal and displacement maps](baking.md)
-26. [Exporting, Unreal and ZBrush](exporting.md)
-27. [Working with Blender](blender.md)
-28. [Projects, autosave and QuickSave](projects.md)
-29. [Scripting and automation](scripting.md)
-30. [SculptForge for studios](studios.md)
+26. [Baking normal and displacement maps](baking.md)
+27. [Exporting, Unreal and ZBrush](exporting.md)
+28. [Working with Blender](blender.md)
+29. [Projects, autosave and QuickSave](projects.md)
+30. [Scripting and automation](scripting.md)
+31. [SculptForge for studios](studios.md)
 
 ## Reference
 
-31. [Keyboard and mouse](shortcuts.md)
-32. [Performance and big meshes](performance.md)
-33. [Troubleshooting and FAQ](troubleshooting.md)
-34. [Glossary](glossary.md)
+32. [Keyboard and mouse](shortcuts.md)
+33. [Performance and big meshes](performance.md)
+34. [Troubleshooting and FAQ](troubleshooting.md)
+35. [Glossary](glossary.md)
 
 ## Getting help
 

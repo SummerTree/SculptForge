@@ -231,6 +231,7 @@ bool App::init(const AppOptions& options) {
     initBrushLibrary(); // before a project can bring its own brushes
     initProject(); // before opening anything, so it lands in the recent files
     initActions(); // the default shortcuts and every command, for keys, help and the command palette
+    initPhoneActions(); // File > Capture from phone (PanelPhone.cpp)
     initLightBox();
     runCommand("new_sphere");
     if (!options.openPath.empty()) openPath(options.openPath);
@@ -341,6 +342,7 @@ int App::runUiTest(int w, int h, int fps) {
         pollUnreal();
         pollGenerator();
         pollBlender(); // (demo recordings leave the user's Blender bridge alone)
+        pollPhone();
         pollAutoUv();
         pollBake();
         pollQRemesh();
@@ -569,6 +571,7 @@ int App::run() {
         pollUnreal();
         pollGoz();
         pollBlender();
+        pollPhone();
         pollAutoUv();
         pollBake();
         pollQRemesh();
@@ -1307,6 +1310,7 @@ void App::drawUi() {
     if (showBrushLab_) drawBrushLab();
     drawBrushGallery();
     if (showImageTo3D_) drawImageTo3D();
+    drawPhoneWindow(); // File > Capture from phone (PanelPhone.cpp)
     pollAlphaFile();
     pollVdm();
     if (previewLod_ >= 0) {
@@ -1346,7 +1350,8 @@ void App::drawUi() {
             ImGui::Spacing();
             ImGui::TextWrapped("Built with SDL 3 (zlib), Dear ImGui (MIT), GLM (MIT), stb (MIT/public domain), ufbx "
                                "(MIT/public domain), xatlas (MIT), MikkTSpace (zlib) and the Inter typeface (SIL OFL 1.1). QRemesh follows Instant Meshes "
-                               "(BSD-3-Clause). Uses libcurl (curl license) "
+                               "(BSD-3-Clause). The phone link uses QR Code generator (MIT), libdatachannel and libjuice (MPL-2.0), usrsctp "
+                               "(BSD-3-Clause) and Mbed TLS (Apache-2.0). Uses libcurl (curl license) "
                                "where available.");
             ImGui::Spacing();
             if (ImGui::Button("License")) SDL_OpenURL("https://github.com/islandmed/SculptForge/blob/main/LICENSE");

@@ -1,0 +1,537 @@
+<!doctype html>
+<!-- SculptForge phone link: the capture page the desktop serves on the local network (src/link/PhoneLink.cpp).
+     Self-contained (no external files): scan videos and photo bursts, one photo for image to 3D, splat .ply files,
+     View in AR, and the way into the live face feed. GPL-3.0-or-later. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f12">
+<meta name="color-scheme" content="dark">
+<title>SculptForge capture</title>
+<style>
+:root { --bg:#0f0f12; --bg2:#15151a; --panel:#1b1b21; --panel2:#22222a; --border:#2a2a31; --text:#ececf1; --muted:#a3a3ad;
+        --accent:#f28c3c; --accent2:#ffb06a; --ok:#4ad295; --warn:#ffcf5a; --bad:#ff6b6b; --r:16px; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { margin:0; background:var(--bg); color:var(--text); }
+body { font:400 16px/1.5 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+       -webkit-font-smoothing:antialiased; min-height:100vh; padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+header { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:10px; padding:14px 18px;
+         background:rgba(15,15,18,.88); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
+header .brand { font-weight:650; letter-spacing:-.01em; flex:1; display:flex; align-items:center; gap:9px; }
+.pill { font-size:13px; padding:4px 10px 4px 8px; border-radius:999px; background:var(--panel); border:1px solid var(--border);
+        color:var(--muted); display:flex; align-items:center; gap:6px; white-space:nowrap; max-width:55vw; overflow:hidden; text-overflow:ellipsis; }
+.dot { width:8px; height:8px; border-radius:50%; background:var(--muted); flex:none; }
+.pill.ok .dot { background:var(--ok); box-shadow:0 0 8px var(--ok); } .pill.bad .dot { background:var(--bad); }
+main { padding:18px; max-width:560px; margin:0 auto; }
+h1 { font-size:26px; line-height:1.15; margin:6px 0 6px; letter-spacing:-.02em; }
+h2 { font-size:20px; margin:0 0 6px; letter-spacing:-.01em; }
+p { margin:0 0 12px; } .muted { color:var(--muted); } .small { font-size:14px; }
+.cards { display:grid; gap:12px; margin-top:16px; }
+.card { display:flex; gap:14px; align-items:center; padding:16px; border-radius:var(--r); background:var(--panel);
+        border:1px solid var(--border); color:var(--text); text-align:left; width:100%; font:inherit; cursor:pointer; }
+.card:active { transform:scale(.985); background:var(--panel2); }
+.card .icon { width:46px; height:46px; border-radius:12px; flex:none; display:grid; place-items:center;
+              background:linear-gradient(160deg, rgba(242,140,60,.25), rgba(242,140,60,.08)); color:var(--accent2); }
+.card b { display:block; font-weight:620; font-size:17px; } .card span { color:var(--muted); font-size:14px; }
+.card .chev { margin-left:auto; color:var(--muted); }
+.panel { background:var(--panel); border:1px solid var(--border); border-radius:var(--r); padding:16px; margin:14px 0; }
+.back { background:none; border:none; color:var(--accent2); font:inherit; padding:6px 0; margin:0 0 4px; cursor:pointer; }
+button.primary, a.primary, label.primary { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:52px;
+        border:none; border-radius:14px; font:600 17px/1 inherit; font-family:inherit; color:#1a0d04; text-decoration:none;
+        background:linear-gradient(180deg, #f6994d, #e2742a); cursor:pointer; margin-top:10px; }
+button.secondary, a.secondary, label.secondary { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:50px;
+        border:1px solid var(--border); border-radius:14px; font:600 16px/1 inherit; font-family:inherit; color:var(--text);
+        background:var(--panel2); cursor:pointer; margin-top:10px; text-decoration:none; }
+button:disabled { opacity:.45; }
+input[type=file] { display:none; }
+ul.tips { list-style:none; padding:0; margin:8px 0 4px; display:grid; gap:9px; }
+ul.tips li { display:flex; gap:10px; align-items:flex-start; font-size:15px; }
+ul.tips li::before { content:""; width:20px; height:20px; flex:none; margin-top:1px; border-radius:50%;
+        background:rgba(74,210,149,.16) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 3 6-7' fill='none' stroke='%234ad295' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/20px no-repeat; }
+.orbit { display:block; width:100%; max-width:300px; margin:6px auto 2px; }
+.orbit .cam { animation:orbit 6s linear infinite; transform-origin:150px 95px; }
+@keyframes orbit { to { transform:rotate(360deg); } }
+.seg { display:flex; background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:3px; gap:3px; margin:8px 0; }
+.seg button { flex:1; border:none; background:none; color:var(--muted); font:600 14px inherit; font-family:inherit; padding:9px 4px; border-radius:9px; cursor:pointer; }
+.seg button.on { background:var(--panel2); color:var(--text); box-shadow:0 1px 0 rgba(255,255,255,.05) inset; }
+.bar { height:10px; border-radius:999px; background:var(--bg2); border:1px solid var(--border); overflow:hidden; margin:12px 0 8px; }
+.bar i { display:block; height:100%; width:0; background:linear-gradient(90deg, #e2742a, #ffb06a); transition:width .25s; }
+.row { display:flex; justify-content:space-between; gap:10px; font-size:14px; color:var(--muted); }
+.note { border-radius:12px; padding:11px 13px; font-size:14px; margin:10px 0; background:rgba(255,207,90,.08); border:1px solid rgba(255,207,90,.25); color:#ffe2a0; }
+.note.bad { background:rgba(255,107,107,.08); border-color:rgba(255,107,107,.3); color:#ffc2c2; }
+.note.ok { background:rgba(74,210,149,.08); border-color:rgba(74,210,149,.3); color:#bff3db; }
+.preview { width:100%; border-radius:12px; margin:10px 0; background:#000; max-height:46vh; object-fit:contain; }
+.code { display:flex; gap:8px; justify-content:center; margin:14px 0; }
+.code input { width:100%; max-width:260px; text-align:center; font:600 30px/1 ui-monospace, Menlo, monospace; letter-spacing:.3em;
+              padding:12px; border-radius:14px; border:1px solid var(--border); background:var(--bg2); color:var(--text); }
+.hidden { display:none !important; }
+footer { text-align:center; color:#6f6f78; font-size:12px; padding:22px 18px 30px; }
+.big-check { width:72px; height:72px; border-radius:50%; margin:10px auto 14px; display:grid; place-items:center; background:rgba(74,210,149,.14); }
+.arlink { display:block; } .arlink img { width:100%; border-radius:12px; display:block; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l8.5 4.8v9.4L12 21.5l-8.5-4.8V7.3z" fill="none" stroke="#f28c3c" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.4L12 12l8.2-4.6M12 12v9.2" fill="none" stroke="#ffb06a" stroke-width="1.6" stroke-linejoin="round"/></svg>
+    SculptForge
+  </div>
+  <div id="conn" class="pill"><span class="dot"></span><span id="connText">Connecting...</span></div>
+</header>
+
+<main>
+  <!-- Pairing: when the page was opened without the QR code's link -->
+  <section id="pair" class="hidden">
+    <h1>Pair with your computer</h1>
+    <p class="muted">Type the 6-digit code shown in SculptForge (File &gt; Capture from phone).</p>
+    <div class="code"><input id="codeInput" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000"></div>
+    <button class="primary" id="pairBtn">Pair</button>
+    <div id="pairMsg"></div>
+  </section>
+
+  <!-- Home -->
+  <section id="home" class="hidden">
+    <h1>Capture for SculptForge</h1>
+    <p class="muted" id="homeSub">What would you like to send?</p>
+    <div class="cards">
+      <button class="card" data-go="scan"><div class="icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M3 12a9 4 0 0 0 18 0M21 12a9 4 0 0 0-18 0" opacity=".55"/><path d="M17 5l2-1.5M7 19l-2 1.5"/></svg></div>
+        <div><b>Scan an object</b><span>Walk around it for 20-60 s. Becomes a live splat.</span></div><span class="chev">›</span></button>
+      <button class="card" data-go="photo"><div class="icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2.5h5L16 6"/></svg></div>
+        <div><b>One photo to 3D</b><span>AI turns a single picture into a model.</span></div><span class="chev">›</span></button>
+      <button class="card" data-go="ply"><div class="icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="8" r="1.6"/><circle cx="15" cy="6" r="1.2"/><circle cx="17" cy="13" r="2"/><circle cx="9" cy="15" r="2.4"/><circle cx="13" cy="19" r="1.2"/></svg></div>
+        <div><b>Send a splat file</b><span>A .ply from Scaniverse, Polycam, Luma...</span></div><span class="chev">›</span></button>
+      <button class="card" data-go="ar"><div class="icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v8l-7 4-7-4V7z"/><path d="M5 7l7 4 7-4M12 11v8"/><path d="M2 21h20" opacity=".55"/></svg></div>
+        <div><b>View in AR</b><span>Your sculpt, standing on your real desk.</span></div><span class="chev">›</span></button>
+      <button class="card" data-go="face"><div class="icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1 1.3 2.2 2 3.5 2s2.5-.7 3.5-2"/><path d="M9 9.5h.01M15 9.5h.01"/></svg></div>
+        <div><b>Face capture</b><span>Your expressions drive the character, live.</span></div><span class="chev">›</span></button>
+    </div>
+  </section>
+
+  <!-- Scan -->
+  <section id="scan" class="hidden">
+    <button class="back" data-go="home">‹ Back</button>
+    <h1>Scan an object</h1>
+    <svg class="orbit" viewBox="0 0 300 190" aria-hidden="true">
+      <ellipse cx="150" cy="120" rx="118" ry="44" fill="none" stroke="#2f2f38" stroke-width="2" stroke-dasharray="5 7"/>
+      <ellipse cx="150" cy="150" rx="60" ry="10" fill="#000" opacity=".35"/>
+      <path d="M150 62c22 0 34 20 34 42s-10 44-34 44-34-22-34-44 12-42 34-42z" fill="#c9a78b"/>
+      <path d="M150 62c22 0 34 20 34 42s-10 44-34 44" fill="#a78468"/>
+      <g class="cam"><g transform="translate(268 120)"><rect x="-11" y="-17" width="22" height="34" rx="5" fill="#f28c3c"/><circle cx="0" cy="-8" r="3.2" fill="#1a0d04"/></g></g>
+    </svg>
+    <p class="muted small" style="text-align:center">Walk slowly all the way round, then once more a little lower.</p>
+    <ul class="tips">
+      <li>20-60 seconds, slow and steady (no quick turns)</li>
+      <li>Even, soft light; no harsh shadows or reflections</li>
+      <li>Keep the object in the middle of the screen and the whole of it in view</li>
+      <li>Don't zoom; keep about the same distance all the way</li>
+      <li>A plain table or floor around it helps</li>
+    </ul>
+    <label class="primary" for="scanVideo">Record a video</label>
+    <input id="scanVideo" type="file" accept="video/*" capture="environment">
+    <label class="secondary" for="scanPhotos">Choose photos (20-200)</label>
+    <input id="scanPhotos" type="file" accept="image/*" multiple>
+    <label class="secondary" for="scanLibrary">Choose a video you already took</label>
+    <input id="scanLibrary" type="file" accept="video/*">
+    <div id="scanCheck" class="panel hidden">
+      <video id="scanPreview" class="preview hidden" playsinline muted></video>
+      <div id="scanSummary"></div>
+      <button class="primary" id="scanSend">Send to SculptForge</button>
+    </div>
+  </section>
+
+  <!-- One photo -->
+  <section id="photo" class="hidden">
+    <button class="back" data-go="home">‹ Back</button>
+    <h1>One photo to 3D</h1>
+    <ul class="tips">
+      <li>One object, the whole of it in the picture</li>
+      <li>A plain background (a wall, a sheet of paper)</li>
+      <li>Soft light; a three-quarter view shows the most</li>
+    </ul>
+    <p class="muted small">Your computer sends it to the image-to-3D service chosen in SculptForge (Generate &gt; Image to 3D; free Hugging Face by default).</p>
+    <label class="primary" for="photoCam">Take a photo</label>
+    <input id="photoCam" type="file" accept="image/*" capture="environment">
+    <label class="secondary" for="photoLib">Choose from your photos</label>
+    <input id="photoLib" type="file" accept="image/*">
+    <div id="photoCheck" class="panel hidden">
+      <img id="photoPreview" class="preview" alt="">
+      <button class="primary" id="photoSend">Send to SculptForge</button>
+    </div>
+  </section>
+
+  <!-- PLY -->
+  <section id="ply" class="hidden">
+    <button class="back" data-go="home">‹ Back</button>
+    <h1>Send a splat file</h1>
+    <p class="muted">Already scanned it with a splat app? Export a Gaussian splat <b>.ply</b> and send it here:</p>
+    <ul class="tips">
+      <li><b>Scaniverse</b>: open the scan, Share, Export Model, PLY (splat)</li>
+      <li><b>Polycam</b>: open the capture, Export, Gaussian splat, PLY</li>
+      <li><b>Luma</b>: open the capture, download, Gaussian splat (.ply)</li>
+    </ul>
+    <p class="muted small">Save it to Files first if the app can't share straight to the browser. .splat and .spz work too.</p>
+    <label class="primary" for="plyFile">Choose the file</label>
+    <input id="plyFile" type="file">
+    <div id="plyMsg"></div>
+  </section>
+
+  <!-- Upload progress (all kinds) -->
+  <section id="upload" class="hidden">
+    <h1 id="upTitle">Sending...</h1>
+    <p class="muted" id="upSub">Keep this page open and the screen on.</p>
+    <div class="bar"><i id="upBar"></i></div>
+    <div class="row"><span id="upLeft">0%</span><span id="upRight"></span></div>
+    <div id="upNote"></div>
+    <button class="secondary" id="upCancel">Cancel</button>
+  </section>
+
+  <!-- Done -->
+  <section id="done" class="hidden" style="text-align:center">
+    <div class="big-check"><svg width="38" height="38" viewBox="0 0 20 20"><path d="M5 10.5l3 3 7-8" fill="none" stroke="#4ad295" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h1>Sent</h1>
+    <p class="muted" id="doneText"></p>
+    <button class="primary" data-go="home">Capture something else</button>
+    <button class="secondary" data-go="ar">View the sculpt in AR</button>
+  </section>
+
+  <!-- AR -->
+  <section id="ar" class="hidden">
+    <button class="back" data-go="home">‹ Back</button>
+    <h1>View in AR</h1>
+    <p class="muted">Point your phone at a desk or the floor; the sculpt stands on it at real size.</p>
+    <div class="panel">
+      <div class="small muted">Show</div>
+      <div class="seg" id="arScope"><button data-v="subtool" class="on">Active SubTool</button><button data-v="scene">Whole scene</button></div>
+      <div class="small muted">Size on the desk</div>
+      <div class="seg" id="arSize"><button data-v="10">10 cm</button><button data-v="20" class="on">20 cm</button><button data-v="40">40 cm</button><button data-v="100">1 m</button></div>
+      <button class="primary" id="arPrepare">Get the model</button>
+      <div id="arState" class="small muted" style="margin-top:10px"></div>
+      <div id="arOpen" class="hidden">
+        <a id="arIos" class="arlink hidden" rel="ar" href="#"><img alt="View in AR" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='120'%3E%3Crect width='600' height='120' rx='26' fill='%23f28c3c'/%3E%3Ctext x='300' y='74' font-family='-apple-system,system-ui,sans-serif' font-size='40' font-weight='600' text-anchor='middle' fill='%231a0d04'%3EView in AR%3C/text%3E%3C/svg%3E"></a>
+        <a id="arAndroid" class="primary hidden" href="#">View in AR</a>
+        <a id="arDownload" class="secondary" href="#" download>Download the model</a>
+      </div>
+      <div id="arLive" class="note ok hidden">Updated from your sculpt: tap View in AR again to see the change.</div>
+    </div>
+    <p class="muted small">iPhone and iPad use AR Quick Look (USDZ); Android uses Google's Scene Viewer (GLB, needs Google Play Services for AR).</p>
+  </section>
+
+  <!-- Face -->
+  <section id="face" class="hidden">
+    <button class="back" data-go="home">‹ Back</button>
+    <h1>Face capture</h1>
+    <p class="muted">Your phone's front camera tracks 52 facial expressions (the ARKit set) and sends them to SculptForge about 30 times a second.</p>
+    <ul class="tips">
+      <li>The video never leaves your phone: only the expression numbers do</li>
+      <li>Prop the phone up at eye level, about an arm's length away</li>
+      <li>Light on your face, not behind you</li>
+    </ul>
+    <p class="muted small">The camera needs a secure page, so this opens SculptForge's face page on its website, which then talks straight to your computer over Wi-Fi.</p>
+    <button class="primary" id="faceStart">Start face capture</button>
+    <div id="faceMsg"></div>
+  </section>
+
+  <!-- Can't reach the computer -->
+  <section id="lost" class="hidden">
+    <h1>Can't reach your computer</h1>
+    <div class="note bad" id="lostWhy">SculptForge isn't answering.</div>
+    <ul class="tips">
+      <li>Is the Capture from phone window still open in SculptForge?</li>
+      <li>Phone and computer on the same Wi-Fi (not a guest network, not mobile data)</li>
+      <li>A VPN on either device can block local connections</li>
+      <li>On Windows, allow SculptForge on private networks in the firewall</li>
+    </ul>
+    <button class="primary" id="retry">Try again</button>
+  </section>
+</main>
+<footer>SculptForge phone link · nothing is uploaded anywhere but your computer</footer>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+let token = params.get("k") || sessionStorage.getItem("sfToken") || "";
+let status = null, statusFails = 0, current = "home", busyUpload = null;
+let limits = { chunk: 4 * 1024 * 1024 };
+
+function show(id) {
+  for (const s of document.querySelectorAll("main > section")) s.classList.toggle("hidden", s.id !== id);
+  current = id;
+  window.scrollTo(0, 0);
+}
+function note(el, text, kind) { el.innerHTML = text ? `<div class="note ${kind || ""}">${text}</div>` : ""; }
+function mb(n) { return n >= 1e9 ? (n / 1e9).toFixed(2) + " GB" : n >= 1e6 ? (n / 1e6).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1e3)) + " KB"; }
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/.test(navigator.userAgent);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function api(method, path, body, raw) {
+  const opts = { method, headers: { "X-SF-Token": token } };
+  if (body !== undefined) {
+    if (raw) { opts.body = body; opts.headers["Content-Type"] = "application/octet-stream"; }
+    else { opts.body = JSON.stringify(body); opts.headers["Content-Type"] = "application/json"; }
+  }
+  const r = await fetch(path, opts);
+  let data = {};
+  try { data = await r.json(); } catch (e) {}
+  if (!r.ok) { const err = new Error(data.error || ("HTTP " + r.status)); err.status = r.status; err.data = data; throw err; }
+  return data;
+}
+
+// --- Connection ---
+function setConn(ok, text) {
+  $("conn").className = "pill " + (ok ? "ok" : "bad");
+  $("connText").textContent = text;
+}
+async function poll() {
+  if (!token) return;
+  try {
+    status = await api("GET", "/api/status");
+    statusFails = 0;
+    limits = status.limits || limits;
+    setConn(true, status.desktop || "Connected");
+    $("homeSub").textContent = "Connected to " + (status.desktop || "your computer") + ". What would you like to send?";
+    if (current === "lost") show("home");
+    arStatus();
+  } catch (e) {
+    if (e.status === 403) { sessionStorage.removeItem("sfToken"); token = ""; setConn(false, "Not paired"); show("pair"); return; }
+    if (++statusFails >= 3 && !busyUpload) {
+      setConn(false, "Not connected");
+      $("lostWhy").textContent = "No answer from your computer for a few seconds.";
+      if (current !== "pair") show("lost");
+    }
+  }
+}
+setInterval(poll, 2000);
+
+// --- Pairing ---
+$("pairBtn").onclick = async () => {
+  const code = $("codeInput").value.replace(/\D/g, "");
+  if (code.length !== 6) { note($("pairMsg"), "The code has 6 digits.", "bad"); return; }
+  try {
+    const r = await fetch("/api/pair", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "Pairing failed");
+    token = data.token;
+    sessionStorage.setItem("sfToken", token);
+    history.replaceState(null, "", "/?k=" + encodeURIComponent(token));
+    note($("pairMsg"), "");
+    show("home");
+    poll();
+  } catch (e) { note($("pairMsg"), esc(e.message), "bad"); }
+};
+
+for (const b of document.querySelectorAll("[data-go]")) b.addEventListener("click", () => show(b.dataset.go));
+$("retry").onclick = () => { statusFails = 0; poll(); };
+
+// --- Uploads: resumable, chunked ---
+let cancelUpload = false;
+$("upCancel").onclick = () => { cancelUpload = true; };
+
+async function sendCapture(kind, files, doneText) {
+  if (busyUpload) return;
+  cancelUpload = false;
+  busyUpload = kind;
+  show("upload");
+  $("upTitle").textContent = files.length > 1 ? `Sending ${files.length} files...` : "Sending...";
+  const total = files.reduce((s, f) => s + f.size, 0);
+  let sent = 0, capture = null;
+  const t0 = performance.now();
+  const progress = (extra) => {
+    const pct = total ? Math.min(100, (sent / total) * 100) : 0;
+    $("upBar").style.width = pct.toFixed(1) + "%";
+    const secs = (performance.now() - t0) / 1000, rate = secs > 0.5 ? sent / secs : 0;
+    $("upLeft").textContent = `${Math.floor(pct)}% · ${mb(sent)} of ${mb(total)}`;
+    $("upRight").textContent = rate > 0 ? `${mb(rate)}/s · ${Math.max(1, Math.round((total - sent) / Math.max(rate, 1)))} s left` : "";
+    if (extra !== undefined) note($("upNote"), extra, "");
+  };
+  try {
+    capture = await withRetry(() => api("POST", "/api/capture", { kind }));
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (files.length > 1) $("upSub").textContent = `File ${i + 1} of ${files.length} · keep this page open.`;
+      const entry = await withRetry(() => api("POST", `/api/capture/${capture.id}/file`, { name: file.name || ("file" + i), size: file.size }));
+      const chunk = entry.chunk || limits.chunk;
+      let offset = 0;
+      while (offset < file.size) {
+        if (cancelUpload) throw new Error("cancelled");
+        const end = Math.min(file.size, offset + chunk);
+        const r = await withRetry(async () => {
+          try { return await api("PUT", `/api/file/${entry.id}?offset=${offset}`, file.slice(offset, end), true); }
+          catch (e) {
+            if (e.status === 409 && e.data && typeof e.data.received === "number") return e.data; // resume where it stopped
+            throw e;
+          }
+        }, (n) => progress(`Connection hiccup, retrying (${n})... Same Wi-Fi as your computer?`));
+        sent += r.received - offset;
+        offset = r.received;
+        progress("");
+      }
+    }
+    const fin = await withRetry(() => api("POST", `/api/capture/${capture.id}/finish`));
+    $("doneText").textContent = doneText + (fin.name ? ` (Captures/${fin.name})` : "");
+    show("done");
+  } catch (e) {
+    if (capture) { try { await api("POST", `/api/capture/${capture.id}/cancel`); } catch (e2) {} }
+    if (e.message === "cancelled") { show("home"); }
+    else { show("upload"); $("upTitle").textContent = "Not sent"; note($("upNote"), esc(e.message), "bad"); $("upCancel").textContent = "Back"; $("upCancel").onclick = () => { $("upCancel").textContent = "Cancel"; $("upCancel").onclick = () => { cancelUpload = true; }; show("home"); }; }
+  } finally {
+    busyUpload = null;
+  }
+}
+
+// Retries network failures with backoff (2, 4, 8 ... 30 s); errors the computer answered with are final.
+async function withRetry(fn, onRetry) {
+  for (let attempt = 1; ; attempt++) {
+    try { return await fn(); }
+    catch (e) {
+      if (e.status && e.status < 500 && e.status !== 429 && e.status !== 409) throw e;
+      if (cancelUpload) throw new Error("cancelled");
+      if (attempt >= 12) throw new Error("Lost the connection to your computer. Check that both are on the same Wi-Fi and the SculptForge window is still open, then try again.");
+      if (onRetry) onRetry(attempt);
+      await sleep(Math.min(30000, 1000 * 2 ** attempt));
+    }
+  }
+}
+
+// --- Scan ---
+let scanFiles = [];
+function scanChosen(files, isVideo) {
+  scanFiles = Array.from(files || []);
+  if (!scanFiles.length) return;
+  const total = scanFiles.reduce((s, f) => s + f.size, 0);
+  $("scanCheck").classList.remove("hidden");
+  const v = $("scanPreview");
+  if (isVideo) {
+    v.classList.remove("hidden");
+    v.src = URL.createObjectURL(scanFiles[0]);
+    v.onloadedmetadata = () => {
+      const d = v.duration;
+      let msg = `<b>${isFinite(d) ? Math.round(d) + " s video" : "Video"}</b> · ${mb(total)}`;
+      if (isFinite(d) && d < 15) msg += `<div class="note">That's short: 20-60 s all the way round gives a much better scan. Send anyway, or record again.</div>`;
+      else if (isFinite(d) && d > 120) msg += `<div class="note">That's long: the upload and training take longer. 20-60 s is plenty.</div>`;
+      $("scanSummary").innerHTML = msg;
+    };
+    $("scanSummary").innerHTML = `<b>Video</b> · ${mb(total)}`;
+  } else {
+    v.classList.add("hidden");
+    let msg = `<b>${scanFiles.length} photos</b> · ${mb(total)}`;
+    if (scanFiles.length < 20) msg += `<div class="note">Splats need many views: 20 photos at least, 50-150 is better.</div>`;
+    $("scanSummary").innerHTML = msg;
+  }
+  $("scanCheck").scrollIntoView({ behavior: "smooth" });
+}
+$("scanVideo").onchange = (e) => scanChosen(e.target.files, true);
+$("scanLibrary").onchange = (e) => scanChosen(e.target.files, true);
+$("scanPhotos").onchange = (e) => scanChosen(e.target.files, false);
+$("scanSend").onclick = () => sendCapture("splat", scanFiles, "SculptForge is training a splat from your scan: watch it sharpen in the viewport.");
+
+// --- One photo ---
+let photoFile = null;
+async function photoChosen(files) {
+  const f = files && files[0];
+  if (!f) return;
+  photoFile = f;
+  $("photoPreview").src = URL.createObjectURL(f);
+  $("photoCheck").classList.remove("hidden");
+  $("photoCheck").scrollIntoView({ behavior: "smooth" });
+}
+// Phones take 12-48 MP photos; image to 3D uses about 1 MP. Send at most 2048 px as JPEG (faster on slow Wi-Fi).
+async function shrink(file) {
+  try {
+    const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const scale = Math.min(1, 2048 / Math.max(bmp.width, bmp.height));
+    if (scale >= 1 && /jpe?g|png/i.test(file.type)) return file;
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.92));
+    if (!blob) return file;
+    return new File([blob], (file.name || "photo").replace(/\.[^.]*$/, "") + ".jpg", { type: "image/jpeg" });
+  } catch (e) { return file; }
+}
+$("photoCam").onchange = (e) => photoChosen(e.target.files);
+$("photoLib").onchange = (e) => photoChosen(e.target.files);
+$("photoSend").onclick = async () => {
+  if (!photoFile) return;
+  const f = await shrink(photoFile);
+  sendCapture("photo", [f], "SculptForge is generating a 3D model from your photo (Generate > Image to 3D).");
+};
+
+// --- PLY ---
+$("plyFile").onchange = (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  if (!/\.(ply|splat|spz)$/i.test(f.name)) { note($("plyMsg"), "That's not a .ply, .splat or .spz file.", "bad"); return; }
+  note($("plyMsg"), "");
+  sendCapture("ply", [f], "The splat opens in SculptForge next to your sculpt.");
+};
+
+// --- AR ---
+let arScope = "subtool", arSize = 20, arWanted = 0, arShown = 0;
+function segment(id, set) {
+  for (const b of $(id).querySelectorAll("button")) b.onclick = () => {
+    for (const o of $(id).querySelectorAll("button")) o.classList.toggle("on", o === b);
+    set(b.dataset.v);
+  };
+}
+segment("arScope", (v) => { arScope = v; });
+segment("arSize", (v) => { arSize = Number(v); });
+$("arPrepare").onclick = async () => {
+  try {
+    const r = await api("POST", "/api/ar", { scope: arScope, size: arSize });
+    arWanted = (r.version || 0) + 1;
+    $("arState").textContent = "Preparing the model on your computer...";
+    $("arLive").classList.add("hidden");
+    $("arOpen").classList.add("hidden");
+  } catch (e) { $("arState").textContent = e.message; }
+};
+function arStatus() {
+  if (!status || !status.ar) return;
+  const ar = status.ar;
+  if (ar.error && arWanted) { $("arState").textContent = ar.error; return; }
+  if (!ar.version || ar.version < arWanted) { if (arWanted) $("arState").textContent = "Preparing the model on your computer..."; return; }
+  if (!arWanted && !arShown) return;
+  const v = ar.version;
+  const base = location.origin;
+  const q = `?k=${encodeURIComponent(token)}&v=${v}`;
+  const usdz = `${base}/ar/model.usdz${q}`, glb = `${base}/ar/model.glb${q}`;
+  $("arIos").href = usdz + "#allowsContentScaling=0";
+  $("arAndroid").href = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(glb)}&mode=ar_preferred&title=SculptForge#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(glb)};end;`;
+  $("arDownload").href = isIOS ? usdz : glb;
+  $("arIos").classList.toggle("hidden", !isIOS);
+  $("arAndroid").classList.toggle("hidden", isIOS);
+  $("arOpen").classList.remove("hidden");
+  $("arState").textContent = ar.summary ? "Ready: " + ar.summary : "Ready";
+  if (arShown && v > arShown) $("arLive").classList.remove("hidden");
+  arShown = v;
+}
+
+// --- Face ---
+$("faceStart").onclick = async () => {
+  if (status && status.face && !status.face.webrtc) {
+    note($("faceMsg"), "This SculptForge was built without WebRTC, so live face capture isn't available in it.", "bad");
+    return;
+  }
+  note($("faceMsg"), "Preparing a secure connection...", "");
+  try {
+    const r = await api("GET", "/api/face-link");
+    location.href = r.url;
+  } catch (e) { note($("faceMsg"), esc(e.message), "bad"); }
+};
+
+// --- Start ---
+if (token) {
+  sessionStorage.setItem("sfToken", token);
+  if (params.get("k")) history.replaceState(null, "", "/?k=" + encodeURIComponent(token));
+  show(location.hash === "#face" ? "face" : "home");
+  poll();
+} else {
+  setConn(false, "Not paired");
+  show("pair");
+}
+</script>
+</body>
+</html>

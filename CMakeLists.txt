@@ -99,6 +99,7 @@ add_library(sculptforge_core STATIC
   src/io/BlenderBridge.cpp
   src/io/BlenderCommands.cpp
   src/io/StlIO.cpp
+  src/io/ArExport.cpp
 )
 # Facial shapes (core/Face.h): the template head with the 52 ARKit shapes, built from ICT-FaceKit (MIT) by
 # tools/face/build_ict_template.py, embedded so the app, the CLI and the tests all have it.
@@ -148,6 +149,31 @@ if(MSVC)
   target_compile_options(sculptforge_ai PRIVATE /W4 /utf-8 /permissive-)
 else()
   target_compile_options(sculptforge_ai PRIVATE -Wall -Wextra -Wno-unused-parameter)
+endif()
+
+# --- Phone link (src/link/PhoneLink.h, docs/phone-link.md): the capture page server, AR export, live face feed ---
+option(SCULPTFORGE_WEBRTC "Live face feed over WebRTC (fetches libdatachannel and Mbed TLS; OFF: capture and AR only)" ON)
+include(cmake/EmbedFile.cmake)
+embed_files(${CMAKE_CURRENT_BINARY_DIR}/EmbeddedPhone.cpp sf::phone_assets
+  capturePage ${CMAKE_CURRENT_SOURCE_DIR}/assets/phone/capture.html
+  facePage ${CMAKE_CURRENT_SOURCE_DIR}/website/link/index.html)
+add_library(sculptforge_phone STATIC ${CMAKE_CURRENT_BINARY_DIR}/EmbeddedPhone.cpp src/link/HttpServer.cpp
+  src/link/PhoneLink.cpp src/link/FaceFeed.cpp src/link/PhoneRtc.cpp src/link/Qr.cpp third_party/qrcodegen/qrcodegen.cpp)
+target_include_directories(sculptforge_phone PRIVATE third_party/qrcodegen)
+target_link_libraries(sculptforge_phone PUBLIC sculptforge_ai)
+if(SCULPTFORGE_WEBRTC)
+  include(cmake/WebRTC.cmake)
+  target_link_libraries(sculptforge_phone PRIVATE LibDataChannel::LibDataChannelStatic MbedTLS::MbedTLS)
+  target_compile_definitions(sculptforge_phone PRIVATE SF_HAVE_WEBRTC=1)
+else()
+  target_compile_definitions(sculptforge_phone PRIVATE SF_HAVE_WEBRTC=0)
+endif()
+if(MSVC)
+  target_compile_options(sculptforge_phone PRIVATE /W4 /utf-8 /permissive-)
+  set_source_files_properties(third_party/qrcodegen/qrcodegen.cpp PROPERTIES COMPILE_OPTIONS "/w")
+else()
+  target_compile_options(sculptforge_phone PRIVATE -Wall -Wextra -Wno-unused-parameter)
+  set_source_files_properties(third_party/qrcodegen/qrcodegen.cpp PROPERTIES COMPILE_OPTIONS "-w")
 endif()
 
 # --- Headless command-line tool (pipelines, build farms, AI agents) ---
@@ -208,6 +234,7 @@ if(SCULPTFORGE_BUILD_APP)
     src/app/PanelPerformance.cpp
     src/app/PanelGoz.cpp
     src/app/PanelBlender.cpp
+    src/app/PanelPhone.cpp
     src/app/PanelProject.cpp
     src/app/PanelSubTools.cpp
     src/app/Tablet.cpp
@@ -217,7 +244,7 @@ if(SCULPTFORGE_BUILD_APP)
     src/render/Clusters.cpp
     src/render/Renderer.cpp
   )
-  target_link_libraries(sculptforge PRIVATE sculptforge_core sculptforge_ai imgui SDL3::SDL3)
+  target_link_libraries(sculptforge PRIVATE sculptforge_core sculptforge_ai sculptforge_phone imgui SDL3::SDL3)
   target_include_directories(sculptforge PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/lucide)
   target_compile_definitions(sculptforge PRIVATE SCULPTFORGE_VERSION="${PROJECT_VERSION}"
                                                  SF_UPDATE_CHECK=$<BOOL:${SCULPTFORGE_UPDATE_CHECK}>)
@@ -397,7 +424,7 @@ if(SCULPTFORGE_BUILD_TESTS)
                                    src/render/Clusters.cpp)
   target_include_directories(sculptforge_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
   target_compile_definitions(sculptforge_tests PRIVATE SF_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
-  target_link_libraries(sculptforge_tests PRIVATE sculptforge_core sculptforge_ai)
+  target_link_libraries(sculptforge_tests PRIVATE sculptforge_core sculptforge_ai sculptforge_phone)
   if(SCULPTFORGE_BUILD_APP) # the action registry (key chords, shortcut overrides) needs SDL's key names
     target_sources(sculptforge_tests PRIVATE src/app/Actions.cpp)
     target_link_libraries(sculptforge_tests PRIVATE SDL3::SDL3)
@@ -458,6 +485,13 @@ if(SCULPTFORGE_BUILD_TESTS)
     endif()
     add_test(NAME guide_site COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/guide/build_site.py --check
                                      --out ${CMAKE_CURRENT_BINARY_DIR}/guide-site)
+  endif()
+
+  # The phone link's relay (services/link-worker, a Cloudflare Worker) under plain Node, when Node 20+ is installed.
+  find_program(SCULPTFORGE_NODE node)
+  if(SCULPTFORGE_NODE)
+    add_test(NAME link_worker COMMAND ${SCULPTFORGE_NODE} --test test/
+             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/services/link-worker)
   endif()
 
   # UI tests: each tests/ui/*.sfui script drives the real app headless (needs an

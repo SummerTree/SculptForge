@@ -27,6 +27,9 @@
 #include "core/Tablet.h"
 #include "core/UpdateCheck.h"
 #include "core/Texture.h"
+#include "io/ArExport.h"
+#include "link/PhoneLink.h"
+#include "link/Qr.h"
 #include "render/Camera.h"
 #include "render/Renderer.h"
 
@@ -621,6 +624,42 @@ private:
     bool blenderAutoReceive_ = true;   // load whatever Blender sends while SculptForge runs
     int64_t blenderSeenRevision_ = -1; // revision last loaded (or present at start, which is not loaded)
     Uint64 blenderLastPollNs_ = 0, blenderLastBeatNs_ = 0;
+
+    // Phone link (PanelPhone.cpp, link/PhoneLink.h): File > Capture from phone. The server runs only while the
+    // window is open; captures land in <library>/Captures and run the command for their kind; AR models are
+    // exported on a worker; face frames drive face_weights.
+    void initPhoneActions();
+    void drawPhoneWindow();
+    void pollPhone(); // every frame: events, face frames, AR re-exports
+    void setPhoneLinkOpen(bool open);
+    void handlePhoneCapture(const link::PhoneEvent& e);
+    void startPhoneArExport();
+    void drawFacePreview(ImVec2 size);
+    bool phoneBusy() const; // an AR export is running (UI tests' wait_idle)
+    std::unique_ptr<link::PhoneLink> phone_;
+    bool showPhone_ = false;
+    std::string phoneError_;          // why the link couldn't start
+    std::string phoneQrText_;         // what phoneQr_ encodes
+    link::QrCode phoneQr_;
+    int phoneAddress_ = 0;            // which local address the QR code uses
+    bool phoneAutoGenerate_ = true;   // a photo starts Image to 3D at once
+    bool phoneLiveAr_ = true;         // re-export after edits while the phone views the model
+    bool phoneMirror_ = false;        // swap left and right face shapes
+    struct PhoneArJob {
+        bool ok = false;
+        ArExportResult result;
+        std::string error;
+    };
+    std::future<PhoneArJob> phoneArJob_;
+    bool phoneArScene_ = false;       // the last request: whole scene, size
+    float phoneArSizeCm_ = 20.0f;
+    bool phoneArRequested_ = false;   // the phone asked at least once this session
+    uint64_t phoneArSignature_ = 0;   // the scene state the last export was made from
+    double phoneArStartedAt_ = -1e9;
+    link::FaceFrame phoneFace_;       // the newest face frame (preview)
+    uint64_t phoneFaceSerial_ = 0;
+    bool phoneFaceCommandMissing_ = false; // face_weights isn't registered (the facs feature isn't merged)
+    std::vector<std::string> phoneCaptures_; // folders received this session, newest last
     // Projects, unsaved-changes safety, recent files and autosave (PanelProject.cpp).
     bool interactive() const; // false for --render, --record and demos: never prompt
     void initProject();       // end of init(): recent files, autosave restore offer

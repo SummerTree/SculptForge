@@ -243,6 +243,7 @@ void App::drawPalette_File() {
     ImGui::Separator();
     drawGozMenu();
     drawBlenderMenu(); // the Blender bridge (PanelBlender.cpp)
+    menuAction(*this, "file.capture_phone"); // the phone link (PanelPhone.cpp)
     ImGui::Separator();
     menuAction(*this, "file.quit");
 }
