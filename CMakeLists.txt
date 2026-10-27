@@ -503,11 +503,13 @@ if(SCULPTFORGE_BUILD_TESTS)
       add_test(NAME ui_${name} COMMAND sculptforge --ui-test ${script} --ui-out ${CMAKE_CURRENT_BINARY_DIR}/ui-shots/${name})
       set_tests_properties(ui_${name} PROPERTIES LABELS ui TIMEOUT 300)
     endforeach()
-    # Splat training runs the fake Brush / COLMAP / ffmpeg.
-    if(TEST ui_splat_train)
-      set_tests_properties(ui_splat_train PROPERTIES ENVIRONMENT
-        "SCULPTFORGE_BRUSH=$<TARGET_FILE:sf_fake_splat_tools>;SCULPTFORGE_COLMAP=$<TARGET_FILE:sf_fake_splat_tools>;SCULPTFORGE_FFMPEG=$<TARGET_FILE:sf_fake_splat_tools>")
-    endif()
+    # Splat training (also started by a phone scan) runs the fake Brush / COLMAP / ffmpeg.
+    foreach(t ui_splat_train ui_phone_link)
+      if(TEST ${t})
+        set_tests_properties(${t} PROPERTIES ENVIRONMENT
+          "SCULPTFORGE_BRUSH=$<TARGET_FILE:sf_fake_splat_tools>;SCULPTFORGE_COLMAP=$<TARGET_FILE:sf_fake_splat_tools>;SCULPTFORGE_FFMPEG=$<TARGET_FILE:sf_fake_splat_tools>")
+      endif()
+    endforeach()
     # The shell layout again on a 1920x1080 window (docs/ui-design.md §2.3).
     add_test(NAME ui_shell_layout_1080 COMMAND sculptforge --ui-test ${CMAKE_CURRENT_SOURCE_DIR}/tests/ui/shell_layout.sfui
              --size 1920x1080 --ui-out ${CMAKE_CURRENT_BINARY_DIR}/ui-shots/shell_layout_1080)

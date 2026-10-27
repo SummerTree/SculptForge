@@ -31,12 +31,15 @@ wait 0.2
 expect_text "iPhone"
 expect_status "Phone connected"
 
-# A scan (a few photos here): saved to Captures; splat training belongs to the splat feature.
+# A scan (a few photos here): saved to Captures and handed to splat training, which (rightly) turns down
+# two photos with a clear message; tests/ui/splat_train.sfui trains a full capture.
 phone_upload splat data/phone/scan_01.png data/phone/scan_02.png
 wait 0.2
 expect_value phone_captures == 1
-expect_status "Scan received"
 expect_text "-splat"
+wait_idle 120
+expect_value splat_train_stage == 5
+expect_status "Only 2 usable photos"
 
 # A splat .ply from a scanning app loads next to the sculpt.
 phone_upload ply data/phone/scan_splat.ply

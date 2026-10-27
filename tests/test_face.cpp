@@ -212,7 +212,7 @@ TEST(face_fit_finds_the_landmarks_on_a_known_head) {
     CHECK(fit.coverage > 0.8f);
 
     // With the landmarks placed (as the artist would click them, a little off): closer still.
-    FaceLandmarks lm;
+    FaceFitLandmarks lm;
     for (int l = 0; l < kFaceLandmarkCount; ++l) {
         lm.position[size_t(l)] = otherPerson(t.neutral[faceLandmarkVertex(l)]) + glm::vec3(0.0005f, -0.0003f, 0.0f);
         lm.set[size_t(l)] = true;
@@ -227,7 +227,7 @@ TEST(face_fit_finds_the_landmarks_on_a_known_head) {
     CHECK(worstGuided < 0.01f * height);
 
     // Too few landmarks is an error, not a bad fit.
-    FaceLandmarks two;
+    FaceFitLandmarks two;
     two.set[kNoseTip] = two.set[kChin] = true;
     CHECK(!fitFaceTemplate(head.positions, head.triangles, &two, guided, error));
     // A sphere has no face: the fit runs but finds little of the template on it.

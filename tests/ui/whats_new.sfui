@@ -10,6 +10,6 @@ expect_text "Version 0.7"
 expect_text "Version 0.6"
 expect_text "Version 0.5"
 expect_text "Version 0.4.2"
-expect_text "More like ZBrush"
 # The newest section is on screen.
+expect_text "Facial shapes and live face"
 shot whats-new

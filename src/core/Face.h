@@ -79,13 +79,13 @@ const char* faceLandmarkKey(int i);   // "eye_outer_right", ... (JSON keys)
 const char* faceLandmarkLabel(int i); // "Right eye, outer corner", ...
 uint32_t faceLandmarkVertex(int i);   // the template vertex
 
-struct FaceLandmarks {
+struct FaceFitLandmarks {
     std::array<glm::vec3, kFaceLandmarkCount> position{};
     std::array<bool, kFaceLandmarkCount> set{};
     int count() const;
     Json toJson() const;
     // {"nose_tip":[x,y,z], ...}; unknown keys are an error.
-    static bool fromJson(const Json& j, FaceLandmarks& out, std::string& error);
+    static bool fromJson(const Json& j, FaceFitLandmarks& out, std::string& error);
 };
 
 // Uniform scale, rotation and translation (template -> sculpt).
@@ -101,7 +101,7 @@ struct Similarity {
 struct FaceFit {
     Similarity align;                 // the rigid part of the fit
     std::vector<glm::vec3> positions; // the template's vertices wrapped onto the sculpt (sculpt space)
-    FaceLandmarks landmarks;          // the template's landmarks after the fit (sculpt space)
+    FaceFitLandmarks landmarks;          // the template's landmarks after the fit (sculpt space)
     float rmsError = 0.0f;            // face vertices that found the sculpt: RMS distance to it (sculpt units)
     float coverage = 0.0f;            // the fraction of face vertices that found the sculpt
 };
@@ -109,7 +109,7 @@ struct FaceFit {
 // Fits the template to the visible triangles of `positions` / `triangles` (the sculpt with its layers at zero).
 // `landmarks` (optional, at least 3 set) start the fit and pull their template vertices all the way.
 bool fitFaceTemplate(const std::vector<glm::vec3>& positions, const std::vector<glm::uvec3>& triangles,
-                     const FaceLandmarks* landmarks, FaceFit& out, std::string& error);
+                     const FaceFitLandmarks* landmarks, FaceFit& out, std::string& error);
 
 // Deformation transfer: the offsets (sculpt space, per template vertex) of every template shape on the fitted
 // template, in arkitBlendShapeNames() order. On the template itself this gives back its own shapes.
@@ -118,7 +118,7 @@ void transferFaceShapes(const FaceFit& fit, std::vector<std::vector<glm::vec3>>&
 constexpr size_t kFaceMinVertices = 20000;
 
 struct FaceShapesOptions {
-    FaceLandmarks landmarks;  // none set = automatic
+    FaceFitLandmarks landmarks;  // none set = automatic
     int symmetry = -1;        // -1 = when the sculpt is symmetric about X = 0, 0 = off, 1 = on
     bool subtools = true;     // eyes, teeth, tongue and SubTools on the face get the shapes too
     int level = -1;           // subdivision level to make them on (-1 = the lowest with kFaceMinVertices)

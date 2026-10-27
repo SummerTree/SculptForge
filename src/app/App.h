@@ -382,7 +382,7 @@ private:
     void drawFaceOverlay();
     void animateFaceTake(float dt); // every frame (from animateLayers): file dialog results, take playback
     static void SDLCALL onFaceTakeChosen(void* userdata, const char* const* files, int filter);
-    FaceLandmarks faceLandmarks_;
+    FaceFitLandmarks faceLandmarks_;
     bool facePlacing_ = false;
     int facePlaceIndex_ = 0;
     int faceSymmetry_ = 0; // 0 Auto, 1 On, 2 Off

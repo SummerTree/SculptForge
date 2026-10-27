@@ -115,7 +115,7 @@ void registerFaceCommands(CommandRegistry& registry) {
                       const std::string lm = argString(a, "landmarks");
                       if (!lm.empty()) {
                           Json j;
-                          if (!Json::parse(lm, j, error) || !FaceLandmarks::fromJson(j, o.landmarks, error))
+                          if (!Json::parse(lm, j, error) || !FaceFitLandmarks::fromJson(j, o.landmarks, error))
                               return {false, "Landmarks: " + error};
                       }
                       const std::string sym = argString(a, "symmetry", "auto");

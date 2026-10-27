@@ -128,7 +128,7 @@ void App::registerFaceUiActions() {
         "face_landmarks_detect");
     add("face.landmarks_clear", "Clear Landmarks", ICON_LC_ERASER,
         [this] {
-            faceLandmarks_ = FaceLandmarks{};
+            faceLandmarks_ = FaceFitLandmarks{};
             facePlacing_ = false;
             status_ = "Landmarks cleared: Generate fits automatically";
         },

@@ -230,9 +230,9 @@ const char* faceLandmarkKey(int i) { return i >= 0 && i < kFaceLandmarkCount ? k
 const char* faceLandmarkLabel(int i) { return i >= 0 && i < kFaceLandmarkCount ? kLandmarks[i].label : ""; }
 uint32_t faceLandmarkVertex(int i) { return i >= 0 && i < kFaceLandmarkCount ? kLandmarks[i].vertex : 0; }
 
-int FaceLandmarks::count() const { return int(std::count(set.begin(), set.end(), true)); }
+int FaceFitLandmarks::count() const { return int(std::count(set.begin(), set.end(), true)); }
 
-Json FaceLandmarks::toJson() const {
+Json FaceFitLandmarks::toJson() const {
     Json j = Json::object();
     for (int i = 0; i < kFaceLandmarkCount; ++i) {
         if (!set[size_t(i)]) continue;
@@ -243,8 +243,8 @@ Json FaceLandmarks::toJson() const {
     return j;
 }
 
-bool FaceLandmarks::fromJson(const Json& j, FaceLandmarks& out, std::string& error) {
-    FaceLandmarks l;
+bool FaceFitLandmarks::fromJson(const Json& j, FaceFitLandmarks& out, std::string& error) {
+    FaceFitLandmarks l;
     if (!j.isObject()) {
         error = "Landmarks must be a JSON object like {\"nose_tip\":[0,1.6,0.1]}";
         return false;
@@ -452,7 +452,7 @@ struct FitScore {
 
 // Similarity ICP over the face vertices (every `stride`-th); returns the last iteration's score.
 FitScore similarityIcp(const TriangleBVH& sculpt, const FaceTemplate& t, const std::vector<glm::vec3>& templNormals,
-                       const FaceLandmarks* landmarks, Similarity& align, int iterations, uint32_t stride) {
+                       const FaceFitLandmarks* landmarks, Similarity& align, int iterations, uint32_t stride) {
     FitScore score;
     std::vector<glm::vec3> pos(t.neutral.size()), nrm(t.neutral.size());
     Correspondences c;
@@ -509,7 +509,7 @@ FitScore similarityIcp(const TriangleBVH& sculpt, const FaceTemplate& t, const s
 } // namespace
 
 bool fitFaceTemplate(const std::vector<glm::vec3>& positions, const std::vector<glm::uvec3>& triangles,
-                     const FaceLandmarks* landmarksIn, FaceFit& out, std::string& error) {
+                     const FaceFitLandmarks* landmarksIn, FaceFit& out, std::string& error) {
     const TemplateData& td = templateData();
     const FaceTemplate& t = td.t;
     if (t.neutral.empty()) {
@@ -520,7 +520,7 @@ bool fitFaceTemplate(const std::vector<glm::vec3>& positions, const std::vector<
         error = "The mesh is empty";
         return false;
     }
-    const FaceLandmarks* landmarks = landmarksIn && landmarksIn->count() >= 3 ? landmarksIn : nullptr;
+    const FaceFitLandmarks* landmarks = landmarksIn && landmarksIn->count() >= 3 ? landmarksIn : nullptr;
     if (landmarksIn && landmarksIn->count() > 0 && !landmarks) {
         error = "Place at least 3 landmarks (or none, for the automatic fit)";
         return false;
