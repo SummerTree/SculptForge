@@ -52,6 +52,7 @@ add_library(sculptforge_core STATIC
   src/core/Image.cpp
   src/core/ImageTo3D.cpp
   src/core/Splats.cpp
+  src/core/SplatCapture.cpp
   src/core/Voxel.cpp
   src/core/EnginePresets.cpp
   src/core/Masking.cpp
@@ -119,7 +120,7 @@ endif()
 # --- Bring-your-own-AI (brush assistant). HTTPS via WinHTTP or libcurl. ---
 add_library(sculptforge_ai STATIC src/ai/Http.cpp src/ai/BrushAssistant.cpp src/ai/Generator3D.cpp
   src/ai/ImageTo3DService.cpp src/ai/GradioClient.cpp src/ai/ComfyUI.cpp src/ai/AiCommands.cpp src/ai/BrushGalleryClient.cpp src/link/Socket.cpp
-  src/link/UnrealLink.cpp)
+  src/link/UnrealLink.cpp src/ai/Process.cpp src/ai/SplatTrainer.cpp)
 # Lets a build run from its tree find the bundled ComfyUI workflows (integrations/comfyui/workflows).
 target_compile_definitions(sculptforge_ai PRIVATE SF_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 find_package(Threads REQUIRED)
@@ -193,6 +194,7 @@ if(SCULPTFORGE_BUILD_APP)
     src/app/Gizmo.cpp
     src/app/PanelBake.cpp
     src/app/PanelRetopo.cpp
+    src/app/PanelSplatTrain.cpp
     src/app/PanelPerformance.cpp
     src/app/PanelGoz.cpp
     src/app/PanelBlender.cpp
@@ -395,6 +397,12 @@ if(SCULPTFORGE_BUILD_TESTS)
     target_compile_options(sculptforge_tests PRIVATE /utf-8)
   endif()
   add_test(NAME sculptforge_tests COMMAND sculptforge_tests)
+  # A stand-in for Brush, COLMAP and ffmpeg (tests/tools/fake_splat_tools.cpp): splat training is tested without a GPU.
+  add_executable(sf_fake_splat_tools tests/tools/fake_splat_tools.cpp)
+  target_include_directories(sf_fake_splat_tools PRIVATE third_party/stb)
+  target_link_libraries(sf_fake_splat_tools PRIVATE sculptforge_core)
+  add_dependencies(sculptforge_tests sf_fake_splat_tools)
+  target_compile_definitions(sculptforge_tests PRIVATE SF_FAKE_SPLAT_TOOLS="$<TARGET_FILE:sf_fake_splat_tools>")
 
   # Tests that launch our programs from Python get a path they can run directly. When cross-compiling
   # (e.g. a Windows build tested under Wine, tools/wintest.sh) that is a script calling the emulator.
@@ -451,6 +459,11 @@ if(SCULPTFORGE_BUILD_TESTS)
       add_test(NAME ui_${name} COMMAND sculptforge --ui-test ${script} --ui-out ${CMAKE_CURRENT_BINARY_DIR}/ui-shots/${name})
       set_tests_properties(ui_${name} PROPERTIES LABELS ui TIMEOUT 300)
     endforeach()
+    # Splat training runs the fake Brush / COLMAP / ffmpeg.
+    if(TEST ui_splat_train)
+      set_tests_properties(ui_splat_train PROPERTIES ENVIRONMENT
+        "SCULPTFORGE_BRUSH=$<TARGET_FILE:sf_fake_splat_tools>;SCULPTFORGE_COLMAP=$<TARGET_FILE:sf_fake_splat_tools>;SCULPTFORGE_FFMPEG=$<TARGET_FILE:sf_fake_splat_tools>")
+    endif()
     # The shell layout again on a 1920x1080 window (docs/ui-design.md §2.3).
     add_test(NAME ui_shell_layout_1080 COMMAND sculptforge --ui-test ${CMAKE_CURRENT_SOURCE_DIR}/tests/ui/shell_layout.sfui
              --size 1920x1080 --ui-out ${CMAKE_CURRENT_BINARY_DIR}/ui-shots/shell_layout_1080)

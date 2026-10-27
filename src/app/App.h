@@ -452,6 +452,17 @@ private:
     // (1 when the active SubTool shows a baked normal map); NaN for other names.
     double bakeTestValue(const std::string& name);
     std::shared_ptr<struct BakeUiState> bake_;
+    // Splats > Train from capture (PanelSplatTrain.cpp, ai/SplatTrainer.h): Brush trains a splat from a phone
+    // capture in the background; each checkpoint replaces the splats in the viewport (live preview).
+    void registerSplatTrainUi();
+    void drawSplatTrainSection(); // top of the Splats palette
+    void drawSplatTrainOverlay(); // progress over the canvas, the tool download prompt
+    void pollSplatTrain();
+    bool splatTrainBusy() const;
+    // UI test values: splat_training, splat_previews, splat_train_prompt, splat_train_step, splat_train_stage,
+    // splat_train_psnr; NaN for other names.
+    double splatTrainTestValue(const std::string& name);
+    std::shared_ptr<struct SplatTrainUi> splatTrain_;
     std::string lastExportFolder_; // where the last export went: the default folder for baked maps
     // Cached UV wireframe of the active SubTool for the UV view: segments in 0..1 UV space.
     std::vector<glm::vec2> uvLines_;

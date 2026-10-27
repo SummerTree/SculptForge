@@ -4,6 +4,7 @@
 // sculptforge-cli: run SculptForge commands headless, for build farms, asset
 // pipelines and AI agents.
 #include "ai/AiCommands.h"
+#include "ai/SplatTrainer.h"
 #include "cli/McpServer.h"
 #include "core/Benchmark.h"
 #include "core/BrushLibrary.h"
@@ -53,6 +54,8 @@ int main(int argc, char** argv) {
     sf::CommandRegistry registry;
     // AI commands use the same settings file as the app (keys can also come from the environment).
     sf::ai::registerAiCommands(registry, [] { return sf::ai::AiSettings::load(sf::ai::defaultAiSettingsPath()); });
+    // splat_train: trains in the foreground with the app's tool settings (ai/SplatTrainer.h).
+    sf::ai::registerSplatTrainCommands(registry, [] { return sf::ai::SplatTrainSettings::load(sf::ai::defaultSplatTrainSettingsPath()); });
     std::string script;
     bool quiet = false;
     std::map<std::string, std::string> vars;
