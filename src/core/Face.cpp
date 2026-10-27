@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstring>
 #include <filesystem>
@@ -1056,8 +1057,8 @@ bool generateFaceShapes(Document& doc, const FaceShapesOptions& options, FaceSha
         } else {
             // Brows, lashes, a beard: follow the skin, if they sit on the face.
             const Binding b = bindToTemplate(pos, fitted, 0.6f * s, 2.0f * s);
-            const size_t near = size_t(std::count_if(b.weight.begin(), b.weight.end(), [](float w) { return w > 0.5f; }));
-            if (near * 5 < pos.size()) continue; // not on the face
+            const size_t onFace = size_t(std::count_if(b.weight.begin(), b.weight.end(), [](float w) { return w > 0.5f; }));
+            if (onFace * 5 < pos.size()) continue; // not on the face
             for (size_t k = 0; k < names.size(); ++k) {
                 std::vector<glm::vec3> d = boundOffsets(b, t.triangles, offsets[k]);
                 if (nonZero(d)) made.push_back({names[k], std::move(d)});
