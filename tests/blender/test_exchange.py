@@ -252,6 +252,34 @@ def test_round_trip_through_sculptforge(tmp, cli):
     check(not left, "SculptForge removes its earlier files (left: %s)" % left)
 
 
+def test_shapes_through_sculptforge(tmp, cli):
+    """Sculpt layers (here the 52 ARKit facial shapes) travel as a shapes file beside the .GoZ, which holds the base
+    shape: read_shapes gives the names in order and offsets in Blender's axes (jawOpen drops the chin: -Z)."""
+    root = os.path.join(tmp, "shapes")
+    r = subprocess.run([cli, "-c", 'new_head; face_shapes_generate; blender_send folder="%s"' % root],
+                       capture_output=True, text=True)
+    check(r.returncode == 0, "sculptforge-cli new_head; face_shapes_generate; blender_send (%s)" % r.stderr.strip())
+    if r.returncode:
+        return
+    folder = exchange.inbox(root)  # (the add-on's inbox: what SculptForge sent)
+    manifest = exchange.read_manifest(folder)
+    head = [o for o in manifest["objects"] if o["name"] == "Head"]
+    check(len(head) == 1 and head[0].get("shapes"), "the Head object names its shapes file")
+    if not head or not head[0].get("shapes"):
+        return
+    g = exchange.read_goz(os.path.join(folder, head[0]["file"]))
+    nv, shapes = exchange.read_shapes(os.path.join(folder, head[0]["shapes"]))
+    check(nv == len(g.positions), "shapes file vertex count matches the .GoZ")
+    names = [s[0] for s in shapes]
+    check(len(names) == 52 and names[0] == "browDownLeft" and names[-1] == "tongueOut" and "jawOpen" in names,
+          "the 52 ARKit names, in order")
+    jaw = shapes[names.index("jawOpen")]
+    check(len(jaw[2]) > 100 and jaw[3][:, 2].min() < -0.01, "jawOpen moves the chin down (Blender -Z)")
+    check(all(s[1] == 0.0 for s in shapes), "weights are sent (all 0 after generating)")
+    eyes = [o for o in manifest["objects"] if o["name"] == "Eyes"]
+    check(len(eyes) == 1 and eyes[0].get("shapes"), "the Eyes SubTool has its eyeLook shapes too")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--cli", help="sculptforge-cli, for the round trip through SculptForge")
@@ -263,6 +291,7 @@ def main():
         test_manifest(tmp)
         if args.cli:
             test_round_trip_through_sculptforge(tmp, args.cli)
+            test_shapes_through_sculptforge(tmp, args.cli)
     if failures:
         print("%d check(s) failed" % len(failures))
         return 1

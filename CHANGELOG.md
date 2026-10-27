@@ -7,6 +7,21 @@ All notable changes to SculptForge are listed here. The format follows
 ## [Unreleased]
 
 ### Added
+- Facial shapes (Tool > Facial Shapes, `face_shapes_generate`): the 52 Apple ARKit blend shapes, exactly named, as
+  sculpt layers on the active SubTool, from a built-in template head (ICT-FaceKit's ICT Face Model Light, MIT):
+  automatic or landmark-guided fit (similarity + non-rigid ICP), deformation transfer (Sumner and Popovic 2004) so
+  the shapes follow the sculpt's proportions, mirrored Left/Right on symmetric sculpts, made on a low subdivision
+  level and carried up with the detail. Eye SubTools get eyeLook rotations, teeth and tongue the lower jaw's motion,
+  brows and lashes follow the skin. Face test presets and a slider per shape; `face_landmarks_detect`,
+  `face_preset`.
+- Live face: `face_weights json={...}` sets ARKit-named shape weights on every SubTool, re-evaluating only the
+  vertices they move (no undo step, partial GPU upload; about 9 ms for all 52 on a 700k-vertex head on an M1 Pro).
+- Face takes: play recorded face feeds (JSON frames, `face_take_play`), bake them (`face_take_bake`) into a glTF
+  animation of the morph target weights (GLB) and USD blend shape weight time samples; saved with the project.
+- `new_head`: a new scene with a life-size human head (with mouth and eye sockets) and its eyes.
+- Blender bridge: sculpt layers arrive as shape keys with their names and weights (a `.shapes` file beside each
+  .GoZ, which now holds the base shape when the mesh has layers).
+- UI tests: `zoom` and `look` steps; `run` expands `$SCRIPT_DIR`.
 - "Fixes & suggestions" in the LightBox header (shown at startup) and the Help menu: opens the bug report and
   feature request forms on GitHub.
 

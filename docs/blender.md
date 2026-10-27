@@ -68,6 +68,12 @@ Windows).
   holds the mesh in object space. SculptForge places it with `A * M * A^-1` where `A` maps Blender
   `(x, y, z)` to SculptForge `(x, z, -y)` (metres both). SculptForge -> Blender sends world space without a
   matrix; the add-on applies the inverse of the object's current `matrix_world`.
+- `shapes` (SculptForge -> Blender only, optional): a file beside the .GoZ with the object's sculpt layers, which
+  the add-on turns into shape keys (a Basis, then one key per layer with its name and weight; the 52 ARKit facial
+  shapes keep their names). The .GoZ then holds the base shape (every layer at zero). Layout (little endian):
+  `"SFSHAPES"`, u32 version 1, u32 vertex count, u32 shape count, then per shape u32 name length, the UTF-8 name,
+  f32 weight, u32 count N, u32[N] vertex indices, f32[3N] offsets in Blender's axes (world space, metres).
+  Older add-ons ignore the field (and then get the base shape without the keys).
 - Version: readers refuse a manifest with a higher `version` and say which side to update.
 
 ## Faces, winding and in-place updates

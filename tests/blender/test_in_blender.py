@@ -295,6 +295,22 @@ def main():
     bpy.ops.sculptforge.receive()
     check(not box.modifiers["Bevel"].show_viewport, "the applied modifier is turned off")
 
+    # Facial shapes: SculptForge's sculpt layers arrive as shape keys with their names (the 52 ARKit ones).
+    sculptforge(["new_head", "face_shapes_generate", "face_weights json={\"jawOpen\":0.25}", "blender_send"])
+    check(bpy.ops.sculptforge.receive() == {"FINISHED"}, "receive the head: " + bridge.state.message)
+    head = bpy.data.objects.get("Head")
+    keys = head.data.shape_keys.key_blocks if head and head.data.shape_keys else []
+    check(len(keys) == 53 and keys[0].name == "Basis" and keys[1].name == "browDownLeft" and keys[-1].name == "tongueOut",
+          "Head: Basis and the 52 ARKit shape keys, in order")
+    if len(keys) == 53:
+        jaw = keys["jawOpen"]
+        check(abs(jaw.value - 0.25) < 1e-6, "jawOpen keeps its weight")
+        basis = arr(keys[0].data, "co", 3)
+        check((arr(jaw.data, "co", 3) - basis)[:, 2].min() < -0.01, "jawOpen drops the chin")
+    eyes = bpy.data.objects.get("Eyes")
+    check(eyes is not None and eyes.data.shape_keys is not None and "eyeLookUpLeft" in eyes.data.shape_keys.key_blocks,
+          "Eyes: eyeLook shape keys")
+
     test_zbrush_keys()
     test_vdm_exr()
 

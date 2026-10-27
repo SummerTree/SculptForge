@@ -147,6 +147,15 @@ Ranked by what sculptors cite most on the ZBrush, Polycount, Blender and Mudbox 
   Nostril, Create VDM from a VDM plane, Blender-compatible OpenEXR in and out
 - ✅ Blender add-on: ZBrush-style keys in Sculpt Mode (a preference)
 
+## In development for v0.9 — maquette to performance
+
+- ✅ Facial shapes: the 52 ARKit blend shapes generated on any sculpted humanoid head (template fit + deformation
+  transfer, eyes / teeth / tongue SubTools, symmetry, subdivision levels), Face test, export with ARKit names to
+  GLB / USD / FBX / Blender shape keys
+- ✅ Live face: `face_weights` (partial updates, no undo), takes played and baked to glTF animation / USD time samples
+- 📋 Next for faces: FBX blend-shape animation, take animation over the Blender bridge, an image-based landmark
+  detector, corrective combination shapes, eye rotations as bones for rigs that want them
+
 ## Phase 3 — AI assistant, beyond brushes
 
 - 📋 Chat assistant that drives any SculptForge command (tool calling over the existing registry)
