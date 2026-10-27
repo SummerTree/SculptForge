@@ -10,16 +10,16 @@
   <link rel="icon" type="image/svg+xml" href="../img/favicon.svg?v=2">
   <link rel="icon" type="image/png" href="../img/favicon-64.png?v=2">
   <link rel="apple-touch-icon" href="../img/icon-256.png?v=2">
-  <link rel="canonical" href="https://islandmed.github.io/SculptForge/guide/blender.html">
+  <link rel="canonical" href="https://sculptforge.app/guide/blender.html">
   <meta property="og:type" content="article">
   <meta property="og:title" content="Working with Blender - SculptForge User Guide">
   <meta property="og:description" content="Keep Blender for the scene, rigging, shading and animation, and sculpt in SculptForge: the SculptForge Bridge add-on sends the selected objects from Blender to SculptForge with one click, and one click in SculptForge sends them back. The objects update in place in Blender: their transform, materials">
-  <meta property="og:image" content="https://islandmed.github.io/SculptForge/img/social-preview.png?v=3">
-  <meta property="og:url" content="https://islandmed.github.io/SculptForge/guide/blender.html">
+  <meta property="og:image" content="https://sculptforge.app/img/social-preview.png?v=3">
+  <meta property="og:url" content="https://sculptforge.app/guide/blender.html">
   <link rel="stylesheet" href="../style.css?v=17">
   <script src="../motion.js?v=10" defer></script>
   <script data-goatcounter="https://sculptforge.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
-  <script src="search-index.js?v=32" defer></script>
+  <script src="search-index.js?v=35" defer></script>
 </head>
 <body class="guide-page" data-prev="exporting.html" data-next="projects.html">
   <div class="scroll-progress" aria-hidden="true"></div>
@@ -45,7 +45,7 @@
           <input type="search" id="guide-q" placeholder="Search the guide" aria-label="Search the guide" autocomplete="off">
           <div class="search-results" id="guide-results" hidden></div>
         </div>
-        <nav class="toc" aria-label="User guide"><a class="toc-home" href="index.html">Contents</a><p class="toc-group">Getting started</p><ul><li><a href="welcome.html">Welcome to SculptForge</a></li><li><a href="whats-new.html">What&#x27;s new</a></li><li><a href="coming-from-zbrush.html">Coming from ZBrush</a></li><li><a href="installing.html">Installing SculptForge</a></li><li><a href="interface.html">The interface</a></li><li><a href="navigation.html">Navigating the view</a></li></ul><p class="toc-group">Sculpting</p><ul><li><a href="sculpting.html">Sculpting and brushes</a></li><li><a href="brush-lab.html">Brush Lab and sharing brushes</a></li><li><a href="masking.html">Masking</a></li><li><a href="polygroups.html">Polygroups and visibility</a></li><li><a href="subtools.html">SubTools</a></li><li><a href="polypaint.html">Polypaint and materials</a></li><li><a href="texture-painting.html">Texture painting</a></li><li><a href="layers.html">Sculpt layers and blend shapes</a></li><li><a href="subdivision-levels.html">Subdivision levels</a></li><li><a href="dynamic-topology.html">Dynamic topology</a></li><li><a href="gizmo.html">Moving, rotating and posing (Gizmo 3D)</a></li><li><a href="geometry.html">Subdivide, remesh, decimate and LODs</a></li><li><a href="retopology.html">Quad retopology and detail projection</a></li></ul><p class="toc-group">AI and capture</p><ul><li><a href="generate-3d.html">Image and text to 3D</a></li><li><a href="splats.html">Gaussian splats</a></li><li><a href="phone-capture.html">Phone capture and AR</a></li></ul><p class="toc-group">Files and pipelines</p><ul><li><a href="baking.html">Baking normal and displacement maps</a></li><li><a href="exporting.html">Exporting, Unreal and ZBrush</a></li><li><a href="blender.html" class="current" aria-current="page">Working with Blender</a><ul class="toc-sections"><li><a href="#install-the-add-on">Install the add-on</a></li><li><a href="#a-round-trip">A round trip</a></li><li><a href="#what-comes-across">What comes across</a></li><li><a href="#modifiers">Modifiers</a></li><li><a href="#settings">Settings</a></li><li><a href="#zbrush-style-keys-in-sculpt-mode">ZBrush-style keys in Sculpt Mode</a></li><li><a href="#vector-displacement-maps">Vector displacement maps</a></li><li><a href="#how-it-works">How it works</a></li><li><a href="#limits-and-troubleshooting">Limits and troubleshooting</a></li><li><a href="#see-also">See also</a></li></ul></li><li><a href="projects.html">Projects, autosave and QuickSave</a></li><li><a href="scripting.html">Scripting and automation</a></li><li><a href="studios.html">SculptForge for studios</a></li></ul><p class="toc-group">Reference</p><ul><li><a href="shortcuts.html">Keyboard and mouse</a></li><li><a href="performance.html">Performance and big meshes</a></li><li><a href="troubleshooting.html">Troubleshooting and FAQ</a></li><li><a href="glossary.html">Glossary</a></li></ul></nav>
+        <nav class="toc" aria-label="User guide"><a class="toc-home" href="index.html">Contents</a><p class="toc-group">Getting started</p><ul><li><a href="welcome.html">Welcome to SculptForge</a></li><li><a href="whats-new.html">What&#x27;s new</a></li><li><a href="coming-from-zbrush.html">Coming from ZBrush</a></li><li><a href="installing.html">Installing SculptForge</a></li><li><a href="interface.html">The interface</a></li><li><a href="navigation.html">Navigating the view</a></li></ul><p class="toc-group">Sculpting</p><ul><li><a href="sculpting.html">Sculpting and brushes</a></li><li><a href="brush-lab.html">Brush Lab and sharing brushes</a></li><li><a href="masking.html">Masking</a></li><li><a href="polygroups.html">Polygroups and visibility</a></li><li><a href="subtools.html">SubTools</a></li><li><a href="polypaint.html">Polypaint and materials</a></li><li><a href="texture-painting.html">Texture painting</a></li><li><a href="layers.html">Sculpt layers and blend shapes</a></li><li><a href="facial-shapes.html">Facial shapes and live face</a></li><li><a href="subdivision-levels.html">Subdivision levels</a></li><li><a href="dynamic-topology.html">Dynamic topology</a></li><li><a href="gizmo.html">Moving, rotating and posing (Gizmo 3D)</a></li><li><a href="geometry.html">Subdivide, remesh, decimate and LODs</a></li><li><a href="retopology.html">Quad retopology and detail projection</a></li></ul><p class="toc-group">AI and capture</p><ul><li><a href="generate-3d.html">Image and text to 3D</a></li><li><a href="splats.html">Gaussian splats</a></li><li><a href="scan-to-splat.html">Scan an object into a splat</a></li><li><a href="scan-to-sculptable.html">From scan to sculptable mesh</a></li><li><a href="phone-capture.html">Phone capture and AR</a></li></ul><p class="toc-group">Files and pipelines</p><ul><li><a href="baking.html">Baking normal and displacement maps</a></li><li><a href="exporting.html">Exporting, Unreal and ZBrush</a></li><li><a href="blender.html" class="current" aria-current="page">Working with Blender</a><ul class="toc-sections"><li><a href="#install-the-add-on">Install the add-on</a></li><li><a href="#a-round-trip">A round trip</a></li><li><a href="#what-comes-across">What comes across</a></li><li><a href="#modifiers">Modifiers</a></li><li><a href="#settings">Settings</a></li><li><a href="#zbrush-style-keys-in-sculpt-mode">ZBrush-style keys in Sculpt Mode</a></li><li><a href="#vector-displacement-maps">Vector displacement maps</a></li><li><a href="#how-it-works">How it works</a></li><li><a href="#limits-and-troubleshooting">Limits and troubleshooting</a></li><li><a href="#see-also">See also</a></li></ul></li><li><a href="projects.html">Projects, autosave and QuickSave</a></li><li><a href="scripting.html">Scripting and automation</a></li><li><a href="studios.html">SculptForge for studios</a></li></ul><p class="toc-group">Reference</p><ul><li><a href="shortcuts.html">Keyboard and mouse</a></li><li><a href="performance.html">Performance and big meshes</a></li><li><a href="troubleshooting.html">Troubleshooting and FAQ</a></li><li><a href="glossary.html">Glossary</a></li></ul></nav>
       </div>
     </div>
     <main class="guide-main" id="top">
@@ -55,7 +55,7 @@
 <h2 id="install-the-add-on">Install the add-on<a class="anchor" href="#install-the-add-on" aria-label="Link to this section">#</a></h2>
 <ol>
 <li>
-Download <code>sculptforge_bridge.zip</code> from the <a href="https://github.com/islandmed/SculptForge/releases/latest/download/sculptforge_bridge.zip" rel="noopener">latest release</a> (or the <a href="https://islandmed.github.io/SculptForge/" rel="noopener">SculptForge website</a>).
+Download <code>sculptforge_bridge.zip</code> from the <a href="https://github.com/islandmed/SculptForge/releases/latest/download/sculptforge_bridge.zip" rel="noopener">latest release</a> (or the <a href="https://sculptforge.app/" rel="noopener">SculptForge website</a>).
 </li>
 <li>
 In Blender choose <strong>Edit &gt; Preferences &gt; Get Extensions</strong>, open the menu at the top right and choose <strong>Install from Disk...</strong>, then pick the zip. (You can also drag the zip into Blender&#x27;s window.)
@@ -164,13 +164,13 @@ Stroke types (DragRect, Spray...): each Blender brush sets its stroke method in 
 <strong>Linked duplicates</strong> (objects sharing one mesh) all show the last one received.
 </li>
 <li>
-<strong>Shape keys</strong>: only the Basis is updated when the topology stays the same; the other keys keep their shapes.
+<strong>Shape keys</strong>: the Basis and the keys named like SculptForge&#x27;s layers are updated; other keys keep their shapes.
 </li>
 <li>
 <strong>Subdivision levels</strong> don&#x27;t go to Blender: it receives the level you&#x27;re on (like GoZ).
 </li>
 <li>
-<strong>Sculpt layers</strong> and textures stay in SculptForge; the mesh goes back with the layers as they show.
+<strong>Sculpt layers</strong> arrive as <strong>shape keys</strong> (Basis plus one key per layer, with its name and weight), so the 52 <a href="facial-shapes.html">facial shapes</a> keep their ARKit names. Shape keys don&#x27;t come back from Blender, and textures stay in SculptForge.
 </li>
 <li>
 <strong>Nothing arrives in SculptForge?</strong> Check <strong>File &gt; Blender &gt; Receive automatically</strong>, or choose <strong>Receive from Blender</strong>. <strong>Nothing arrives in Blender?</strong> Click <strong>Receive from SculptForge</strong>; automatic receiving starts after the first send from that Blender session.

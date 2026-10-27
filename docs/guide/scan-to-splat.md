@@ -2,7 +2,7 @@
 
 Walk around a clay maquette, a prop or a toy with your phone, and SculptForge turns the video or photos into a
 Gaussian splat in the viewport. You watch it sharpen while it trains, and you can orbit around it the whole time.
-From there you can sculpt against it, [convert it into a mesh](splats.md#convert-a-capture-into-a-mesh), or save
+From there you can sculpt against it, [make it sculptable](scan-to-sculptable.md), or save
 it for a splat viewer or a game engine. Nothing is uploaded: everything runs on your own computer.
 
 ## What you need
@@ -90,7 +90,7 @@ The splat comes in centred and upright: SculptForge uses the camera positions to
 the scene with the cameras' "up" pointing up. Use **Flip**, **Turn 90** and **Fit** in the Splats palette if it
 still needs a turn. Then:
 
-- [Convert it into a sculptable mesh](splats.md#convert-a-capture-into-a-mesh).
+- [Make it sculptable](scan-to-sculptable.md).
 - Lower the opacity and sculpt against it as a reference.
 - **Save splats...** to `.ply`, `.splat`, `.glb` or `.usdz` for other apps.
 
