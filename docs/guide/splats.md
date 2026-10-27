@@ -2,7 +2,7 @@
 
 Gaussian splats are the format behind phone and photogrammetry captures from apps such as Polycam, Luma,
 Postshot, Scaniverse and KIRI. SculptForge uses them three ways: as a reference to sculpt against, as a source
-for a watertight base mesh, and as an output when you turn a sculpt into splats. This chapter covers all
+for a sculptable, animation-ready mesh with its colours, and as an output when you turn a sculpt into splats. This chapter covers all
 three.
 
 ![A splat capture loaded next to the sculpt, with the Splats palette in the right tray](images/splats.jpg)
@@ -48,18 +48,12 @@ The palette also shows the number of splats and their spherical-harmonic degree 
 > **Tip:** To sculpt a character over a scan, lower the opacity to about 0.4, turn on **X** symmetry and block
 > in the forms on a sphere or a converted mesh with Clay Buildup and Move.
 
-## Convert a capture into a mesh
+## Make a capture sculptable
 
-**Convert to mesh** builds a watertight, sculptable mesh from the capture:
-
-1. Trim the capture so only the subject remains: **Clean floaters**, and place it with **Flip** and **Fit**.
-2. Set the resolution slider next to **Convert to mesh** (64 to 400, default 192). Higher keeps more detail.
-3. Click **Convert to mesh**. The result replaces the sculpt; the splats stay as a reference, so you can
-   compare.
-4. The conversion is one undo step (<kbd>Ctrl</kbd>+<kbd>Z</kbd> brings the old sculpt back).
-
-The converter keeps the largest solid piece, seals small holes and smooths the surface. It gives a clean base
-mesh for sculpting, not a textured scan: colour is not carried over.
+**Make sculptable** (under **From scan** in the **Splats** palette) turns the capture into a clean SubTool you
+can sculpt and animate: a watertight surface without floaters, quad topology with loops round the eyes and
+mouth when it is a head, and the capture's colours. The splats stay, hidden. It has its own chapter:
+[From scan to sculptable mesh](scan-to-sculptable.md).
 
 ## Turn a sculpt into splats
 
@@ -98,15 +92,16 @@ Projects (`.sfproj`) keep loaded splats and their placement.
 | `splat_info` | Reports the loaded splats | |
 | `splat_transform` | Rotates and places the capture | `rotate_x`, `rotate_y`, `rotate_z` (degrees), `fit`, `reset` |
 | `splat_clean` | Removes faint splats and floaters | `min_opacity` (default 0.05), `keep` (0.5 to 1, default 0.98) |
-| `splat_to_mesh` | Builds a watertight mesh | `resolution` (32 to 512, default 192), `min_opacity` (default 0.25), `keep` (default 0.97), `close` (0 to 8, default 2), `smooth` (0 to 50, default 6) |
+| `splat_to_mesh` | Make sculptable: a new SubTool with quads, face loops and colour ([details](scan-to-sculptable.md#from-scripts)) | `detail` (default 256), `preset` (game, film, sculpt), `color` (polypaint, texture, none), `crop`, `face_guides` |
+| `splat_test_capture` | Loads a built-in test capture (a head or a mug) | `kind` |
 | `mesh_to_splats` | Turns the visible SubTools into splats | `count` (default 250000), `shading` (default true) |
 | `splat_save` | Saves `.ply`, `.splat`, `.glb`, `.usda` or `.usdz` | `path` |
 | `splat_clear` | Removes the splats | |
 
-A complete phone-capture-to-base-mesh pipeline:
+A complete phone-capture-to-game-asset pipeline:
 
 ```sh
-sculptforge-cli -c 'open path=scan.ply; splat_transform rotate_x=180 fit=true; splat_clean; splat_to_mesh resolution=256; export_glb path=base.glb'
+sculptforge-cli -c 'open path=scan.ply; splat_transform rotate_x=180 fit=true; splat_to_mesh preset=game color=texture; export_glb path=asset.glb'
 ```
 
 To render only the splats headless, use `sculptforge scan.ply --render scan.png --hide-mesh` (see
@@ -114,6 +109,7 @@ To render only the splats headless, use `sculptforge scan.ply --render scan.png 
 
 ## See also
 
+- [From scan to sculptable mesh](scan-to-sculptable.md): Make sculptable in detail
 - [Image and text to 3D](generate-3d.md): another way to get a base mesh
 - [Subdivide, Remesh, Decimate and LODs](geometry.md): clean up a converted mesh
 - [Exporting](exporting.md): USD and glTF exports that carry splats

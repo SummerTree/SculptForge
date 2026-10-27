@@ -53,6 +53,7 @@ add_library(sculptforge_core STATIC
   src/core/ImageTo3D.cpp
   src/core/Splats.cpp
   src/core/SplatCapture.cpp
+  src/core/Sculptable.cpp
   src/core/Voxel.cpp
   src/core/EnginePresets.cpp
   src/core/Masking.cpp
@@ -203,6 +204,7 @@ if(SCULPTFORGE_BUILD_APP)
     src/app/PanelBake.cpp
     src/app/PanelRetopo.cpp
     src/app/PanelSplatTrain.cpp
+    src/app/PanelSculptable.cpp
     src/app/PanelPerformance.cpp
     src/app/PanelGoz.cpp
     src/app/PanelBlender.cpp

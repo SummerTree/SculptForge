@@ -66,7 +66,7 @@ Interface > Palettes strictly A-Z (ZBrush order)**.
 | **Preferences** | Config, Interface, Input, Hotkeys, LightBox, Tablet, Performance, Updates and Autosave sub-palettes (see [Customizing the interface](#customizing-the-interface)) |
 | **Render** | Wireframe, Show Mesh, Show Polypaint, Show Mask, Show Polygroups, Show Splats, Frame, Fullscreen |
 | **Script** | Console, Run script file, Copy session as script, Clear console |
-| **Splats** | Gaussian splat tools: show, flip, turn, fit, clean floaters, convert to mesh, sculpt to splats, save, clear |
+| **Splats** | Gaussian splat tools: show, flip, turn, fit, clean floaters, Make sculptable, sculpt to splats, save, clear |
 | **Stroke** | The stroke types (Dots, DragRect, Spray, LazyMouse) and their settings |
 | **Tool** | The active SubTool with Open, Save and Import, and the SubTool, Layers, Paint Layers, Geometry, Remesh, Masking, Polygroups, Visibility, Export and Display sub-palettes |
 | **Transform** | Draw, Move, Scale and Rotate (the [Gizmo 3D](gizmo.md) with its pivot, axes, options and numeric entry), Symmetry X, Y and Z, Frame, Solo, PolyF |

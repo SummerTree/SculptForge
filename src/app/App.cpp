@@ -345,6 +345,7 @@ int App::runUiTest(int w, int h, int fps) {
         pollBake();
         pollQRemesh();
         pollSplatTrain();
+        pollSculptable();
         updateCameraAspect();
 
         Demo::beginFrame();
@@ -503,6 +504,7 @@ int App::runRecording() {
         pollBake();
         pollQRemesh();
         pollSplatTrain();
+        pollSculptable();
         updateCameraAspect();
 
         Demo::beginFrame();
@@ -571,6 +573,7 @@ int App::run() {
         pollBake();
         pollQRemesh();
         pollSplatTrain();
+        pollSculptable();
 
         int fbW = 0, fbH = 0, winW = 0, winH = 0;
         SDL_GetWindowSizeInPixels(window_, &fbW, &fbH);
@@ -693,6 +696,7 @@ void App::onMouseDown(float x, float y, Uint8 button) {
         if (gizmoMouseDown(x, y, mod)) return; // Gizmo 3D handles, pivot clicks (Gizmo.cpp)
         if (guideMouseDown(x, y, mod)) return; // the QRemesh Guides brush (PanelRetopo.cpp)
         if (faceMouseDown(x, y, mod)) return;  // placing facial landmarks (PanelFace.cpp)
+        if (sculptableMouseDown(x, y)) return; // Make sculptable: landmarks, crop box (PanelSculptable.cpp)
         // Alt+click on another SubTool selects it (ZBrush); Alt+drag stays an inverted stroke or a pan.
         // Shift+Alt+click selects and frames it (ZBrush), the active one too.
         const bool frameClick = (mod & SDL_KMOD_ALT) && (mod & SDL_KMOD_SHIFT) && !ctrlDown(mod);
@@ -776,6 +780,7 @@ void App::onMouseMove(float x, float y, float dx, float dy, bool fromPen) {
     case Drag::Select: selectionMove(x, y); break;
     case Drag::Gizmo: gizmoDragTo(x, y); break;
     case Drag::Guide: guideDragTo(x, y); break;
+    case Drag::Sculptable: sculptableMouseMove(x, y); break;
     case Drag::None: break;
     }
 }
@@ -818,6 +823,7 @@ void App::onMouseUp() {
     if (drag_ == Drag::MaskCanvas) maskCanvasRelease();
     if (drag_ == Drag::SubToolClick) subtoolClickRelease();
     if (drag_ == Drag::Guide) guideRelease();
+    if (drag_ == Drag::Sculptable) sculptableMouseUp();
     gizmoRelease();
     drag_ = Drag::None;
     dragFromPen_ = false;
@@ -1067,6 +1073,7 @@ void App::runCommand(const std::string& name, const Args& args) {
         clearLods();
         playingLayer_ = -1;
     }
+    if (r.ok && name == "splat_to_mesh") renderSettings_.showSplats = false; // the new SubTool shows; the splats stay
     if (r.ok && name == "save_obj" && !doc_.mesh.layers.empty())
         status_ += " (OBJ stores the current blend; export GLB to keep layers as blend shapes)";
     if (!r.ok) SDL_Log("%s failed: %s", name.c_str(), r.message.c_str());
@@ -1315,8 +1322,9 @@ void App::drawUi() {
     drawQRemeshGuides(); // QRemesh Guides curves (PanelRetopo.cpp)
     drawFaceOverlay();   // facial landmarks (PanelFace.cpp)
     drawSplatTrainOverlay(); // splat training progress (PanelSplatTrain.cpp)
+    drawSculptableOverlay(); // Make sculptable: crop box, face landmarks (PanelSculptable.cpp)
     // In Gizmo mode (and with the QRemesh Guides brush) the brush ring shows only while Ctrl masks or Shift smooths.
-    const bool ringOff = gizmoActive() || (guidesMode_ && !(inputMods() & SDL_KMOD_SHIFT));
+    const bool ringOff = gizmoActive() || (guidesMode_ && !(inputMods() & SDL_KMOD_SHIFT)) || sculptableHot();
     if (((!ImGui::GetIO().WantCaptureMouse && canvasRect().contains(mouse.x, mouse.y)) || drag_ == Drag::Stroke) &&
         !hideBrushCursor_ && drag_ != Drag::Select && drag_ != Drag::Guide &&
         (!ringOff || drag_ == Drag::Stroke || ctrlDown(inputMods())))
@@ -2201,6 +2209,11 @@ void App::drawPalette_Splats() {
         ImGui::TextWrapped("Open or drop a .ply capture (Polycam, Luma, Postshot, Scaniverse...) to sculpt against it.");
         ImGui::PopStyleColor();
         if (ImGui::Button("Sculpt to splats", ImVec2(-1, 0))) runCommand("mesh_to_splats");
+        if (ImGui::Button("Try a test head##splats", ImVec2(-1, 0))) runCommand("splat_test_capture", {{"kind", std::string("head")}});
+        ui::HelpText("Try a test head", nullptr,
+                     "Load a built-in test capture (a stylised head as Gaussian splats, with a few floaters) to try Make "
+                     "sculptable without a scan of your own. splat_test_capture kind=object loads a mug instead.",
+                     "Splats");
         return;
     }
     ImGui::Text("%zu splats (SH %d)", doc_.splats.size(), doc_.splats.shDegree);
@@ -2218,17 +2231,12 @@ void App::drawPalette_Splats() {
     if (ImGui::Button("Fit", ImVec2(third, 0))) runCommand("splat_transform", {{"fit", true}});
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Centre and scale to the sculpt");
     if (ImGui::Button("Clean floaters", ImVec2(-1, 0))) runCommand("splat_clean", {{"min_opacity", 0.1}, {"keep", 0.97}});
-    if (ImGui::Button("Convert to mesh", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 0)))
-        runCommand("splat_to_mesh", {{"resolution", double(splatMeshResolution_)}});
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Build a watertight sculpting mesh from the capture (undoable)");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(-1);
-    ImGui::SliderInt("##splatres", &splatMeshResolution_, 64, 400, "res %d");
     const float half = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
     if (ImGui::Button("Save splats...", ImVec2(half, 0))) saveFileDialog(FileAction::SaveSplats);
     ImGui::SameLine();
     if (ImGui::Button("Clear##splats", ImVec2(half, 0))) runCommand("splat_clear");
     drawSplatTrainSection();
+    drawSculptableSection(); // Make sculptable (PanelSculptable.cpp)
 }
 
 void App::drawBrushCursor() {

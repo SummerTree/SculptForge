@@ -23,6 +23,14 @@ your own graphics card. The splat appears in the viewport after a few hundred st
 you can orbit around it, stop when it's good enough, or cancel. Pick **Video...** or **Photos Folder...** under
 **Splats > Train from capture**, or drop a video onto the window. The free Brush trainer is offered as a one-click
 download the first time. See [Scan an object into a splat](scan-to-splat.md).
+### Make sculptable: from a scan to a production asset
+
+One click in the **Splats** palette turns a Gaussian-splat capture into a clean SubTool you can sculpt, rig and
+animate: a watertight surface with the floaters and background gone and open bottoms sealed, quad topology at a
+Game, Film or Sculpt budget, edge loops round the eyes and mouth and along the nasolabial folds when the capture
+is a head (mirrored across the face), and the capture's colours as polypaint or a texture. A crop box cuts away
+the table or the room; Review shows the face landmarks to nudge before remeshing. The splats stay, hidden. Five
+million splats take about ten seconds on a laptop. See [From scan to sculptable mesh](scan-to-sculptable.md).
 
 ## Version 0.8.1
 

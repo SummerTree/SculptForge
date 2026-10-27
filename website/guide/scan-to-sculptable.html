@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>From scan to sculptable mesh - SculptForge User Guide</title>
+  <meta name="description" content="A Gaussian-splat capture looks great but you can&#x27;t sculpt, rig or animate it. Make sculptable turns it into a clean SubTool you can: a watertight surface with the floaters and background gone, quad topology at the polygon budget you choose, edge loops round the eyes and mouth when the capture is a h">
+  <meta name="theme-color" content="#111114">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" type="image/svg+xml" href="../img/favicon.svg?v=2">
+  <link rel="icon" type="image/png" href="../img/favicon-64.png?v=2">
+  <link rel="apple-touch-icon" href="../img/icon-256.png?v=2">
+  <link rel="canonical" href="https://islandmed.github.io/SculptForge/guide/scan-to-sculptable.html">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="From scan to sculptable mesh - SculptForge User Guide">
+  <meta property="og:description" content="A Gaussian-splat capture looks great but you can&#x27;t sculpt, rig or animate it. Make sculptable turns it into a clean SubTool you can: a watertight surface with the floaters and background gone, quad topology at the polygon budget you choose, edge loops round the eyes and mouth when the capture is a h">
+  <meta property="og:image" content="https://islandmed.github.io/SculptForge/img/social-preview.png?v=3">
+  <meta property="og:url" content="https://islandmed.github.io/SculptForge/guide/scan-to-sculptable.html">
+  <link rel="stylesheet" href="../style.css?v=17">
+  <script src="../motion.js?v=10" defer></script>
+  <script data-goatcounter="https://sculptforge.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+  <script src="search-index.js?v=32" defer></script>
+</head>
+<body class="guide-page" data-prev="splats.html" data-next="baking.html">
+  <div class="scroll-progress" aria-hidden="true"></div>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="../index.html"><img src="../img/logo.svg?v=2" alt="" width="34" height="34"><span>SculptForge</span></a>
+      <nav aria-label="Main">
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#demos">Demos</a>
+        <a href="../brushes.html">Brushes</a>
+        <a href="index.html" aria-current="page">Guide</a>
+        <a class="nav-dl" href="../index.html#download">Download</a>
+        <a class="gh" href="https://github.com/islandmed/SculptForge">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <div class="wrap guide-layout">
+    <div class="guide-side">
+      <button class="toc-toggle" type="button" aria-expanded="false" aria-controls="guide-toc">
+        <span>Contents</span><span class="toc-current">From scan to sculptable mesh</span></button>
+      <div id="guide-toc" class="toc-panel">
+        <div class="guide-search" role="search">
+          <input type="search" id="guide-q" placeholder="Search the guide" aria-label="Search the guide" autocomplete="off">
+          <div class="search-results" id="guide-results" hidden></div>
+        </div>
+        <nav class="toc" aria-label="User guide"><a class="toc-home" href="index.html">Contents</a><p class="toc-group">Getting started</p><ul><li><a href="welcome.html">Welcome to SculptForge</a></li><li><a href="whats-new.html">What&#x27;s new</a></li><li><a href="coming-from-zbrush.html">Coming from ZBrush</a></li><li><a href="installing.html">Installing SculptForge</a></li><li><a href="interface.html">The interface</a></li><li><a href="navigation.html">Navigating the view</a></li></ul><p class="toc-group">Sculpting</p><ul><li><a href="sculpting.html">Sculpting and brushes</a></li><li><a href="brush-lab.html">Brush Lab and sharing brushes</a></li><li><a href="masking.html">Masking</a></li><li><a href="polygroups.html">Polygroups and visibility</a></li><li><a href="subtools.html">SubTools</a></li><li><a href="polypaint.html">Polypaint and materials</a></li><li><a href="texture-painting.html">Texture painting</a></li><li><a href="layers.html">Sculpt layers and blend shapes</a></li><li><a href="subdivision-levels.html">Subdivision levels</a></li><li><a href="dynamic-topology.html">Dynamic topology</a></li><li><a href="gizmo.html">Moving, rotating and posing (Gizmo 3D)</a></li><li><a href="geometry.html">Subdivide, remesh, decimate and LODs</a></li><li><a href="retopology.html">Quad retopology and detail projection</a></li></ul><p class="toc-group">AI and capture</p><ul><li><a href="generate-3d.html">Image and text to 3D</a></li><li><a href="splats.html">Gaussian splats</a></li><li><a href="scan-to-sculptable.html" class="current" aria-current="page">From scan to sculptable mesh</a><ul class="toc-sections"><li><a href="#one-click">One click</a></li><li><a href="#the-options">The options</a></li><li><a href="#face-loops-animation-topology-for-heads">Face loops: animation topology for heads</a></li><li><a href="#the-crop-box">The crop box</a></li><li><a href="#what-happens-inside">What happens inside</a></li><li><a href="#speed">Speed</a></li><li><a href="#how-good-is-it">How good is it?</a></li><li><a href="#from-scripts">From scripts</a></li><li><a href="#see-also">See also</a></li></ul></li></ul><p class="toc-group">Files and pipelines</p><ul><li><a href="baking.html">Baking normal and displacement maps</a></li><li><a href="exporting.html">Exporting, Unreal and ZBrush</a></li><li><a href="blender.html">Working with Blender</a></li><li><a href="projects.html">Projects, autosave and QuickSave</a></li><li><a href="scripting.html">Scripting and automation</a></li><li><a href="studios.html">SculptForge for studios</a></li></ul><p class="toc-group">Reference</p><ul><li><a href="shortcuts.html">Keyboard and mouse</a></li><li><a href="performance.html">Performance and big meshes</a></li><li><a href="troubleshooting.html">Troubleshooting and FAQ</a></li><li><a href="glossary.html">Glossary</a></li></ul></nav>
+      </div>
+    </div>
+    <main class="guide-main" id="top">
+      <article class="guide-article">
+<h1 id="from-scan-to-sculptable-mesh">From scan to sculptable mesh</h1>
+<p>A Gaussian-splat capture looks great but you can&#x27;t sculpt, rig or animate it. <strong>Make sculptable</strong> turns it into a clean SubTool you can: a watertight surface with the floaters and background gone, quad topology at the polygon budget you choose, edge loops round the eyes and mouth when the capture is a head, and the capture&#x27;s colours as polypaint or a texture. One click, in the background, with the splats kept next to the result.</p>
+<figure class="shot"><a href="images/make-sculptable.jpg" class="zoom"><img src="images/make-sculptable.jpg" alt="A test head capture, the review of its face landmarks and loops, and the finished quads with its colours" width="1200" height="507" loading="lazy" decoding="async"></a><figcaption>A test head capture, the review of its face landmarks and loops, and the finished quads with its colours</figcaption></figure>
+<h2 id="one-click">One click<a class="anchor" href="#one-click" aria-label="Link to this section">#</a></h2>
+<ol>
+<li>
+Load a capture (see <a href="splats.html">Gaussian splats</a>): <strong>File &gt; Open...</strong> or drop a <code>.ply</code>, <code>.splat</code>, <code>.glb</code> or <code>.usdz</code> onto the window. Place it with <strong>Flip</strong>, <strong>Turn 90</strong> and <strong>Fit</strong> if it arrives upside down.
+</li>
+<li>
+For a head, turn the view so you look at the face, roughly from the front (within about 40 degrees is enough). The face is looked for from the current view.
+</li>
+<li>
+In the <strong>Splats</strong> palette, under <strong>From scan</strong>, click <strong>Make sculptable</strong>.
+</li>
+</ol>
+<p>A progress bar and <strong>Cancel</strong> show while it works. When it&#x27;s done:</p>
+<ul>
+<li>
+a new SubTool named after the capture holds the sculptable mesh, and is active;
+</li>
+<li>
+a hidden <strong>&quot;&lt;name&gt; Scan&quot;</strong> SubTool keeps the dense voxel surface it was made from (turn off <strong>Keep scan</strong> if you don&#x27;t want it);
+</li>
+<li>
+the splats are hidden, not deleted (<strong>Show</strong> in the Splats palette brings them back);
+</li>
+<li>
+an untouched starting sphere is hidden too.
+</li>
+</ul>
+<p>No capture at hand? <strong>Try a test head</strong> in the Splats palette (shown while no splats are loaded) loads a built-in one: a stylised head as 200,000 coloured splats with a few floaters and the hidden inside splats real captures have. <code>splat_test_capture kind=object</code> loads a mug with a thin handle instead.</p>
+<figure class="shot"><a href="images/make-sculptable-panel.jpg" class="zoom"><img src="images/make-sculptable-panel.jpg" alt="The From scan section of the Splats palette" width="324" height="460" loading="lazy" decoding="async"></a><figcaption>The From scan section of the Splats palette</figcaption></figure>
+<h2 id="the-options">The options<a class="anchor" href="#the-options" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap"><table><thead><tr><th>Control</th><th>What it does</th></tr></thead><tbody><tr><td><strong>Detail</strong></td><td>How finely the surface follows the capture, in voxels across the subject (96 to 512, default 256). Higher keeps thinner parts and more detail and takes longer</td></tr><tr><td><strong>Game / Film / Sculpt</strong></td><td>The polygon budget. <strong>Game</strong>: about 4,000 quads, for real-time characters and props. <strong>Film</strong>: about 12,000 quads, for close-ups and smooth deformation. <strong>Sculpt</strong>: a 2,000-quad base with two subdivision levels, the scan&#x27;s detail projected onto the top level, so you sculpt with levels straight away</td></tr><tr><td><strong>Face loops</strong></td><td>When the capture is a head: find the eyes, nose, mouth and chin and give QRemesh edge loops round the eyes and mouth and along the nasolabial folds, mirrored across the face (see below)</td></tr><tr><td><strong>Review</strong></td><td>Stop after the scan to check the face landmarks and the loops before remeshing</td></tr><tr><td><strong>Polypaint / Texture</strong></td><td>Where the capture&#x27;s colours go: the vertices (polypaint), or a 2K texture on automatic UVs (sharp colour on a light mesh, for games and exports)</td></tr><tr><td><strong>Keep scan</strong></td><td>Keep the dense voxel surface as a hidden &quot;&lt;name&gt; Scan&quot; SubTool, to ProjectAll more detail from later</td></tr><tr><td><strong>Crop Box</strong></td><td>Only the splats inside the box count (see below)</td></tr><tr><td><strong>More &gt; Min Opacity</strong></td><td>Splats fainter than this are ignored (haze and floaters are usually faint). Default 0.2</td></tr><tr><td><strong>More &gt; Close Gaps</strong></td><td>Seal gaps up to this many voxels between splats. Default 2</td></tr><tr><td><strong>More &gt; Fill holes</strong></td><td>Fill big holes such as the open bottom of a subject that stood on a table. Turn it off for open cavities like a cup</td></tr><tr><td><strong>More &gt; All pieces</strong></td><td>Keep every solid piece instead of only the largest (the floaters come back too)</td></tr></tbody></table></div>
+<p>Hold <kbd>Ctrl</kbd> and point at any of them for help; <kbd>F3</kbd> finds <strong>Make sculptable</strong>, <strong>Finish</strong>, <strong>Place by hand</strong> and <strong>Crop Box</strong> by name.</p>
+<h2 id="face-loops-animation-topology-for-heads">Face loops: animation topology for heads<a class="anchor" href="#face-loops-animation-topology-for-heads" aria-label="Link to this section">#</a></h2>
+<p>Faces deform around the eyes and the mouth, so animation topology has rings of edges there and a loop from the nose down past the mouth corners (the nasolabial fold), the same on both sides. With <strong>Face loops</strong> on, Make sculptable looks for a face on the scan as seen from the current view: a depth and colour picture of it, the middle line where it is mirror-symmetric, the nose as the strongest bump on that line, the eyes as a matching pair of hollows (and darker spots) above it, the line between the lips below it, then the chin. From those eight landmarks (the corners of both eyes, the nose tip, the mouth corners, the chin) it draws <a href="retopology.html#qremesh-guides">QRemesh Guides</a> for QRemesh to follow:</p>
+<ul>
+<li>
+a ring round each eye, and a bigger one round the eye socket when the polygon budget is high enough for it;
+</li>
+<li>
+a ring round the lips;
+</li>
+<li>
+the nasolabial loop: from each side of the nose down the fold past the mouth corner and under the lower lip;
+</li>
+<li>
+all of them mirrored across the face, and QRemesh&#x27;s symmetry on, so both halves get the same edge flow.
+</li>
+</ul>
+<p>The guides stay on the result SubTool, so you can <strong>QRemesh</strong> it again at another density (Geometry &gt; QRemesh) and the loops come back. Small loops are left out at low budgets, where they couldn&#x27;t come out as clean rings.</p>
+<p>If no face is found (the status bar says why), the result is remeshed without face loops. Turn the view to face the head and run it again, or use Review and place the landmarks by hand.</p>
+<h3 id="review-and-nudge-the-landmarks">Review and nudge the landmarks<a class="anchor" href="#review-and-nudge-the-landmarks" aria-label="Link to this section">#</a></h3>
+<p>With <strong>Review</strong> on, Make sculptable stops after the scan: the &quot;&lt;name&gt; Scan&quot; SubTool shows with the landmarks as blue dots and the guide loops as orange lines.</p>
+<ul>
+<li>
+<strong>Drag a dot</strong> to move a landmark onto the right spot. Its partner on the other side follows (mirrored), and the loops are rebuilt when you let go.
+</li>
+<li>
+<strong>Place by hand</strong> asks for the eight landmarks one click at a time (the panel and the cursor say which is next): the outer and inner corner of the eye on the left of the screen, the inner and outer corner of the other eye, the nose tip, the left and right mouth corners, the chin.
+</li>
+<li>
+<strong>Find again</strong> looks for the face again from the current view.
+</li>
+<li>
+<strong>Finish</strong> remeshes the scan along the loops and colours it; <strong>Back</strong> leaves the review and keeps the scan.
+</li>
+</ul>
+<h2 id="the-crop-box">The crop box<a class="anchor" href="#the-crop-box" aria-label="Link to this section">#</a></h2>
+<p>Captures usually include the ground, a table or the room. <strong>Make sculptable</strong> keeps only the largest solid piece, which drops floaters, but a table the subject stands on is joined to it. Click <strong>Crop Box</strong>: a yellow box appears round the capture with a handle on each face. Drag a handle to move that face (drag the bottom one up to cut the table away), then <strong>Make sculptable</strong>: only the splats inside the box count. The box shows while the splats are shown; click <strong>Crop Box</strong> again to turn it off.</p>
+<h2 id="what-happens-inside">What happens inside<a class="anchor" href="#what-happens-inside" aria-label="Link to this section">#</a></h2>
+<ol>
+<li>
+<strong>Surface.</strong> Every Gaussian adds its opacity-weighted density to a voxel grid (in parallel, with the same result on any number of threads). Where the density is high enough is the shell of the subject; small gaps close, small separate pieces of shell (floaters) are dropped, and space boxed in by the shell on five of six sides counts as inside, which seals big holes such as an open bottom. The outside is flooded from the edges, the largest solid piece is kept, and a smooth watertight surface is made from it.
+</li>
+<li>
+<strong>Colour.</strong> Each vertex (or texel) takes the colour of the splats around it, weighted by their opacity and distance. Splats behind the surface, inside the subject, are faded out: trained captures fill the inside with splats of any colour.
+</li>
+<li>
+<strong>Topology.</strong> QRemesh rebuilds the scan as quads at the budget&#x27;s polygon count, along the face guides, with symmetry. <strong>Sculpt</strong> then divides it twice and projects the scan onto the top level (as ProjectAll does).
+</li>
+</ol>
+<h2 id="speed">Speed<a class="anchor" href="#speed" aria-label="Link to this section">#</a></h2>
+<p>Measured on an M1 Pro laptop (10 cores, 2021) with the built-in test head at <strong>Film</strong> density, from click to the finished SubTool:</p>
+<div class="table-wrap"><table><thead><tr><th>Splats</th><th>Detail 256</th><th>Detail 384</th><th>Detail 512</th><th>Peak memory (512)</th></tr></thead><tbody><tr><td>1 million</td><td>3.4 s (surface 1.3 s)</td><td>5.5 s (surface 2.6 s)</td><td>8.8 s (surface 5.1 s)</td><td>1.0 GB</td></tr><tr><td>5 million</td><td>7.2 s (surface 4.2 s)</td><td>9.1 s (surface 5.6 s)</td><td>13.2 s (surface 8.0 s)</td><td>1.2 GB</td></tr></tbody></table></div>
+<p>The rest of the time is QRemesh and colour. Everything runs on the CPU, so a studio PC with more cores is faster; no GPU or CUDA is needed.</p>
+<h2 id="how-good-is-it">How good is it?<a class="anchor" href="#how-good-is-it" aria-label="Link to this section">#</a></h2>
+<p>What works well:</p>
+<ul>
+<li>
+Watertight, manifold surfaces every time (no holes, no non-manifold edges), with floaters and stray background pieces dropped and open bottoms sealed.
+</li>
+<li>
+Faithful colour: on test captures with known colours the transferred polypaint is within a few percent of the original, and the wrongly coloured splats inside the subject don&#x27;t bleed through.
+</li>
+<li>
+Clean quads (97% or more) with symmetric rings round the eyes and mouth on faces it finds.
+</li>
+<li>
+Thin parts survive down to a few voxels across (a mug handle at Detail 160 stays a handle, its hole open).
+</li>
+</ul>
+<p>What to expect:</p>
+<ul>
+<li>
+The scan has a fine ripple (voxel-scale, a little like orange peel) where the capture&#x27;s splats are sparse; the quad result smooths it out, but the <strong>Sculpt</strong> preset projects it onto the top level, where the Smooth brush takes it away.
+</li>
+<li>
+The surface sits about a voxel outside the splats (the shell&#x27;s thickness). Raise <strong>Detail</strong> to make that smaller.
+</li>
+<li>
+The face finder works from geometry and colour, not a trained model: it is reliable on clear faces seen from the front (busts, maquettes, game heads) and can miss on heavily stylised faces, closed-eye or beard-covered ones, profiles, or a head that isn&#x27;t upright in the view. Then use Review and <strong>Place by hand</strong>.
+</li>
+<li>
+Fill holes also fills deep open cavities (the inside of a cup, an open mouth); turn it off for those.
+</li>
+<li>
+Hair and fur become a solid shell, as with any surface reconstruction.
+</li>
+<li>
+Splat captures carry view-dependent colour; Make sculptable uses the base colour of each splat (no reflections or highlights baked in), which is what you want for a sculpt.
+</li>
+</ul>
+<h2 id="from-scripts">From scripts<a class="anchor" href="#from-scripts" aria-label="Link to this section">#</a></h2>
+<p>The same pipeline runs from the console, <code>sculptforge-cli</code>, MCP and Python:</p>
+<div class="table-wrap"><table><thead><tr><th>Command</th><th>What it does</th><th>Key parameters</th></tr></thead><tbody><tr><td><code>splat_to_mesh</code></td><td>Make sculptable</td><td><code>detail</code> (32 to 768, default 256; <code>resolution</code> is the same), <code>preset</code> (game, film or sculpt), <code>target</code> (quads; 0 keeps the voxel surface), <code>levels</code>, <code>face_guides</code> (auto or off), <code>landmarks</code> (JSON, instead of finding them), <code>front</code>, <code>up</code> (the face&#x27;s directions, default <code>&quot;0 0 1&quot;</code> and <code>&quot;0 1 0&quot;</code>), <code>color</code> (polypaint, texture or none), <code>texture_size</code>, <code>crop</code> (<code>&quot;minx miny minz maxx maxy maxz&quot;</code>), <code>min_opacity</code>, <code>keep</code>, <code>close</code>, <code>fill_holes</code>, <code>keep_parts</code>, <code>smooth</code>, <code>symmetry</code>, <code>keep_scan</code>, <code>stage</code> (all, scan or finish), <code>seed</code></td></tr><tr><td><code>face_guides</code></td><td>Finds a face on the active SubTool (or takes <code>landmarks</code>) and replaces its QRemesh Guides with the face loops; the message ends with the landmarks as JSON</td><td><code>landmarks</code>, <code>front</code>, <code>up</code>, <code>target</code></td></tr><tr><td><code>splat_test_capture</code></td><td>Loads the built-in test head or mug capture</td><td><code>kind</code> (head or object), <code>count</code>, <code>floaters</code>, <code>open_bottom</code></td></tr></tbody></table></div>
+<div class="code-block"><pre class="code"><code class="language-sh"># A scan to a textured game asset, in one go.
+sculptforge-cli -c &#x27;open path=bust.ply; splat_transform rotate_x=180 fit=true; splat_to_mesh preset=game color=texture; export_glb path=bust.glb&#x27;
+
+# The app&#x27;s review in two steps: the scan with its face guides (the message lists the landmarks found), then the
+# quads along those guides.
+sculptforge-cli -c &#x27;open path=head.ply; splat_to_mesh stage=scan preset=film; splat_to_mesh stage=finish preset=film; export_glb path=head.glb&#x27;</code></pre><button class="copy" type="button" aria-label="Copy">Copy</button></div>
+<p>To correct the landmarks from a script, run <code>face_guides</code> between the two stages with <code>landmarks=</code> set to the JSON the scan stage printed, edited: <code>{&quot;eye_outer_l&quot;: [x, y, z], &quot;eye_inner_l&quot;: [...], &quot;eye_inner_r&quot;: [...], &quot;eye_outer_r&quot;: [...], &quot;nose_tip&quot;: [...], &quot;mouth_l&quot;: [...], &quot;mouth_r&quot;: [...], &quot;chin&quot;: [...]}</code> (<code>l</code> is the side on the left of the screen when looking at the face).</p>
+<p>Each run in the app is echoed to the console as a <code>splat_to_mesh</code> line (with the landmarks when you reviewed them), so you can copy it into a batch script.</p>
+<h2 id="see-also">See also<a class="anchor" href="#see-also" aria-label="Link to this section">#</a></h2>
+<ul>
+<li>
+<a href="splats.html">Gaussian splats</a>: loading, placing and saving captures
+</li>
+<li>
+<a href="retopology.html">Quad retopology and detail projection</a>: QRemesh, QRemesh Guides and ProjectAll
+</li>
+<li>
+<a href="subdivision-levels.html">Subdivision levels</a>: sculpting the <strong>Sculpt</strong> preset&#x27;s levels
+</li>
+<li>
+<a href="texture-painting.html">Texture painting</a>: painting on the <strong>Texture</strong> result
+</li>
+</ul>
+      </article>
+      <nav class="pager" aria-label="Previous and next chapter"><a class="prev" rel="prev" href="splats.html"><span>Previous</span>Gaussian splats</a><a class="next" rel="next" href="baking.html"><span>Next</span>Baking normal and displacement maps</a></nav>
+      <p class="guide-meta fine">Also in the app: <strong>Help &gt; User Guide</strong> (<kbd>Shift</kbd>+<kbd>F1</kbd>).
+        Found a mistake? <a href="https://github.com/islandmed/SculptForge/edit/main/docs/guide/scan-to-sculptable.md">Edit this page on GitHub</a>.</p>
+    </main>
+    <aside class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#one-click">One click</a></li><li><a href="#the-options">The options</a></li><li><a href="#face-loops-animation-topology-for-heads">Face loops: animation topology for heads</a></li><li><a href="#the-crop-box">The crop box</a></li><li><a href="#what-happens-inside">What happens inside</a></li><li><a href="#speed">Speed</a></li><li><a href="#how-good-is-it">How good is it?</a></li><li><a href="#from-scripts">From scripts</a></li><li><a href="#see-also">See also</a></li></ul></aside>
+  </div>
+  <footer class="footer">
+    <div class="wrap footer-grid">
+      <div>
+        <a class="brand" href="../index.html"><img src="../img/logo.svg?v=2" alt="" width="28" height="28"><span>SculptForge</span></a>
+        <p class="fine">Copyright © 2026 The SculptForge contributors.<br>The SculptForge User Guide is part of
+          SculptForge, licensed under the <a href="https://github.com/islandmed/SculptForge/blob/main/LICENSE">GNU GPL v3.0 or later</a>.</p>
+      </div>
+      <div class="links">
+        <a href="index.html">User guide</a>
+        <a href="https://github.com/islandmed/SculptForge">Source code</a>
+        <a href="https://github.com/islandmed/SculptForge/issues">Report a problem</a>
+        <a href="https://github.com/islandmed/SculptForge/blob/main/docs/ai-services.md">AI services &amp; privacy</a>
+      </div>
+      <p class="fine trademarks">SculptForge is an independent project, not affiliated with or endorsed by Maxon or
+        any other company named in this guide. ZBrush is a trademark of Maxon. All other trademarks belong to their
+        owners.</p>
+    </div>
+  </footer>
+</body>
+</html>

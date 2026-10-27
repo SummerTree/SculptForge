@@ -51,6 +51,7 @@ CROPS = {
     "polygroups": ("polygroups", (300, 100, 1600, 860), 960),
     "splats": ("splats", (420, 46, 1600, 900), 960),
     "user-guide": ("user-guide", (130, 140, 1190, 880), 1060),
+    "make-sculptable-panel": ("sculptable-panel", (1276, 500, 1600, 960), 324),
 }
 
 # The labelled overview: region name and box in window pixels.
@@ -166,6 +167,20 @@ def qremesh_guides(shots: pathlib.Path):
     return save(img, "qremesh-guides", 1200)
 
 
+def make_sculptable(shots: pathlib.Path):
+    box = (455, 240, 865, 770)
+    names = [("sculptable-capture", "Splat capture"), ("sculptable-review", "Review: landmarks and loops"),
+             ("sculptable-result", "Sculptable quads")]
+    panels = [Image.open(shots / f"{n}.png").convert("RGB").crop(box) for n, _ in names]
+    w, h = panels[0].size
+    img = Image.new("RGB", (w * 3 + 24, h), (20, 20, 22))
+    d = ImageDraw.Draw(img)
+    for i, (p, (_, text)) in enumerate(zip(panels, names)):
+        img.paste(p, (i * (w + 12), 0))
+        label(d, (i * (w + 12) + w // 2, 16), text, 20, "mt")
+    return save(img, "make-sculptable", 1200)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("shots", type=pathlib.Path, help="folder with the screenshots (--ui-out of shots.sfui)")
@@ -174,7 +189,8 @@ def main() -> int:
     args = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     composed = {"interface-overview": overview, "remesh": remesh, "subdivision-levels": subdivision,
-                "qremesh-guides": qremesh_guides, "dynamic-topology": dyntopo}
+                "qremesh-guides": qremesh_guides, "dynamic-topology": dyntopo,
+                "make-sculptable": make_sculptable}
     wanted = lambda name: not args.only or name in args.only
     made = [make(args.shots) for name, make in composed.items() if wanted(name)]
     for name, (shot, box, width) in CROPS.items():

@@ -1,0 +1,101 @@
+# Make sculptable (Splats palette): the built-in test head capture -> one click -> a quad SubTool with face loops and
+# the capture's colours next to the hidden scan; then the review: the face landmarks as dots, one dragged (its mirror
+# follows and the loops are rebuilt), Finish. The crop box toggles; F3 finds the action.
+run splat_test_capture kind=head count=150000
+wait 0.5
+expect_value splats > 150000
+expect "Make sculptable/Make sculptable"
+shot capture
+
+# Ctrl-hover help on the new controls.
+hold ctrl
+wait 0.2
+hover "Make sculptable/Make sculptable"
+expect_help "sculptable SubTool"
+hover "Make sculptable/##sculptdetail"
+expect_help "voxels across"
+hover "Make sculptable/Face loops"
+expect_help "nasolabial"
+hover "Make sculptable/Review##sculptable"
+expect_help "landmarks"
+hover "Make sculptable/Texture##sculptcolor"
+expect_help "Auto UV"
+hover "Make sculptable/Crop Box"
+expect_help "face handles"
+hold none
+
+# The crop box shows round the capture.
+click "Make sculptable/Crop Box"
+expect_value sculptable_crop == 1
+shot crop-box
+click "Make sculptable/Crop Box"
+expect_value sculptable_crop == 0
+
+# One click: the game preset, face loops found from the front view.
+click "Make sculptable/Make sculptable"
+wait_idle 120
+expect_status "Made sculptable"
+expect_status "face guides: 6 loops"
+expect_value subtools == 3
+expect_value visible_subtools == 1
+expect_value show_splats == 0
+expect_value quad_percent >= 97
+expect_value colored > 0
+expect_value qremesh_guide_loops == 6
+camera 0 0
+shot result
+click "PolyF##view.polyf"
+shot result-polyf
+click "PolyF##view.polyf"
+
+# Review: Film density, stop after the scan to check the landmarks.
+click "Show##splats"
+expect_value show_splats == 1
+click "Make sculptable/Review##sculptable"
+click "Make sculptable/Film##sculptpreset"
+click "Make sculptable/Make sculptable"
+wait_idle 120
+expect_value sculptable_review == 1
+expect_value sculptable_landmarks == 8
+expect_value qremesh_guide_loops == 6
+expect_status "face guides: 6 loops"
+expect "Make sculptable/Finish"
+camera 0 0
+shot review
+# Drag the left mouth corner further left: the right one follows (mirrored), the loops are rebuilt.
+remember landmark_x_5 left
+remember landmark_x_6 right
+drag_landmark 5 -14 0
+expect_status "Face guides"
+expect_value landmark_x_5 < $left
+expect_value landmark_x_6 > $right
+expect_value qremesh_guide_loops == 6
+shot review-nudged
+click "Make sculptable/Finish"
+wait_idle 120
+expect_status "Made sculptable"
+expect_status "along"
+expect_value sculptable_review == 0
+expect_value quad_percent >= 97
+expect_value subtools == 5
+expect_value visible_subtools == 2
+camera 0 0
+click "PolyF##view.polyf"
+shot film-polyf
+click "PolyF##view.polyf"
+
+# Place by hand: Review again, then click the eight landmarks on the scan.
+click "Make sculptable/Make sculptable"
+wait_idle 120
+expect_value sculptable_review == 1
+click "Make sculptable/Place by hand"
+expect_value sculptable_placing == 0
+expect_status "outer corner"
+click "Make sculptable/Back##sculptable"
+expect_value sculptable_review == 0
+
+# F3 finds it.
+key f3
+type "##Command palette" "make sculptable"
+expect_text "Make sculptable"
+key escape

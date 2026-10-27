@@ -6,6 +6,28 @@ All notable changes to SculptForge are listed here. The format follows
 
 ## [Unreleased]
 
+### Make sculptable (splat capture -> sculptable, animation-ready mesh)
+- Splats palette > **From scan > Make sculptable**: one click turns the capture into a new SubTool next to the
+  splats (which are hidden, not deleted): a watertight, manifold surface (opacity-weighted Gaussian density on a
+  voxel grid, built in parallel z slabs with the same result on any thread count; gaps closed; floater shells
+  dropped; space boxed in on 5 of 6 sides filled, which seals open bottoms; largest piece kept), QRemesh quads at
+  a **Game** (4,000), **Film** (12,000) or **Sculpt** (2,000 + 2 subdivision levels with the scan projected onto
+  the top) budget, and the capture's colours as polypaint or an Auto UV texture (splats inside the subject are
+  faded out). A hidden "<name> Scan" SubTool keeps the dense surface for ProjectAll.
+- **Face loops**: a face is looked for on the scan from the current view (depth and colour, no ML model, no
+  download): eye corners, nose tip, mouth corners and chin become QRemesh Guides (rings round the eyes and the
+  orbits, the lips, the nasolabial loop), mirrored, with QRemesh symmetry. **Review** stops after the scan to
+  drag the landmarks (the mirror follows) or **Place by hand**, then **Finish**.
+- **Crop Box** with draggable face handles in the viewport; options for Detail, Min Opacity, Close Gaps, Fill
+  holes, All pieces, Keep scan. Progress bar and Cancel; Ctrl-hover help; F3 entries.
+- Commands: `splat_to_mesh` now runs the whole pipeline (`detail`, `preset`, `target`, `levels`, `face_guides`,
+  `landmarks`, `front`, `up`, `color`, `texture_size`, `crop`, `fill_holes`, `keep_parts`, `keep_scan`, `stage`
+  scan/finish, ...; `resolution` still works) and adds SubTools instead of replacing the sculpt; `face_guides`;
+  `splat_test_capture` (a built-in test head or mug capture, no download).
+- 5 million splats to Film quads with face loops in about 9 s, 0.9 GB (M1 Pro).
+- Guide chapter "From scan to sculptable mesh"; UI test `make_sculptable.sfui`; UI tests: `drag_landmark` verb,
+  `hover` scrolls a panel to the item as `click` does.
+
 ### Added
 - Facial shapes (Tool > Facial Shapes, `face_shapes_generate`): the 52 Apple ARKit blend shapes, exactly named, as
   sculpt layers on the active SubTool, from a built-in template head (ICT-FaceKit's ICT Face Model Light, MIT):
