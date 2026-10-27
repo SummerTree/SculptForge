@@ -42,8 +42,8 @@
     <section class="hero">
       <div class="wrap hero-grid">
         <div class="hero-copy">
-          <a class="new-badge" href="#whats-new"><span>New in 0.8.1</span>
-            Open your ZTools, plus dynamic topology →</a>
+          <a class="new-badge" href="#whats-new"><span>New in 0.9</span>
+            Scan with your phone, sculpt it, animate the face →</a>
           <p class="eyebrow">The free, open-source alternative to ZBrush and Mudbox</p>
           <h1><span class="nowrap">Sculpt it.</span> <span class="nowrap">Forge it.</span><br><span class="accent">Ship it.</span></h1>
           <p class="lede">Digital sculpting for <strong>VFX, animation and game studios</strong> on Linux, macOS and
@@ -92,11 +92,36 @@
 
     <section id="whats-new" class="section alt">
       <div class="wrap">
-        <h2>What's new in 0.8</h2>
-        <p class="section-lede">Sculpt from a ball without thinking about polygons, stamp whole shapes, and tell
-          QRemesh where the loops go. <a href="guide/whats-new.html">Everything that changed</a> ·
+        <h2>What's new in 0.9</h2>
+        <p class="section-lede">Maquette to performance: scan a clay maquette with your phone, sculpt on the scan,
+          give the head its facial shapes and drive them with your own face. <a href="guide/whats-new.html">Everything that changed</a> ·
           <a href="https://github.com/islandmed/SculptForge/blob/main/CHANGELOG.md">changelog</a></p>
         <div class="grid">
+          <article class="card">
+            <h3>Your phone is the scanner <small>new in 0.9</small></h3>
+            <p>Scan the QR code in File &gt; Capture from phone, walk round an object for half a minute, and the
+              Gaussian splat trains on your own graphics card, sharpening in the viewport while you orbit. No app, no
+              account. <a href="guide/phone-capture.html">Phone capture</a> ·
+              <a href="guide/scan-to-splat.html">Scan to splat</a></p>
+          </article>
+          <article class="card">
+            <h3>Make sculptable <small>new in 0.9</small></h3>
+            <p>One click turns a scan into a watertight quad mesh with its colours, with edge loops round the eyes
+              and mouth when it's a head: a production asset, not a point cloud.
+              <a href="guide/scan-to-sculptable.html">From scan to sculptable</a></p>
+          </article>
+          <article class="card">
+            <h3>Facial shapes in one click <small>new in 0.9</small></h3>
+            <p>Generate the 52 ARKit blend shapes on any sculpted head, fitted to its proportions, then fix them by
+              sculpting. They export with their names to GLB, USD, FBX and Blender.
+              <a href="guide/facial-shapes.html">Facial shapes</a></p>
+          </article>
+          <article class="card">
+            <h3>Drive the face live, see it on your desk <small>new in 0.9</small></h3>
+            <p>Point your phone at your face and the character makes your expressions in real time; record takes
+              and bake them to animation. View in AR stands your sculpt on your real desk.
+              <a href="guide/phone-capture.html">How it works</a></p>
+          </article>
           <article class="card">
             <h3>Bring your ZTools over <small>new in 0.8.1</small></h3>
             <p>A free plug-in for ZBrush converts a ZTool once, then SculptForge opens the .ZTL with every SubTool,
@@ -447,7 +472,7 @@ rez-env sculptforge -- sculptforge troll.usda \
     <section id="download" class="section alt">
       <div class="wrap">
         <h2>Download</h2>
-        <p class="section-lede">Version 0.8.1. All builds come from the
+        <p class="section-lede">Version 0.9.0. All builds come from the
           <a href="https://github.com/islandmed/SculptForge/releases/latest">latest GitHub release</a>, with
           SHA-256 checksums.</p>
         <div class="downloads">

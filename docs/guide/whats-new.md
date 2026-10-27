@@ -5,7 +5,10 @@ chapter opens by itself the first time you start a new version; you can always f
 **Help > What's New**. Every detail is in the
 [changelog](https://github.com/islandmed/SculptForge/blob/main/CHANGELOG.md).
 
-## Next version (in development)
+## Version 0.9.0
+
+Maquette to performance: scan an object or a clay maquette with your phone, turn the scan into a clean mesh you
+can sculpt and animate, give a head the 52 ARKit facial shapes, and drive them live with your own face.
 
 ### Facial shapes and live face
 

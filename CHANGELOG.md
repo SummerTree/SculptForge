@@ -6,6 +6,11 @@ All notable changes to SculptForge are listed here. The format follows
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-26
+
+Maquette to performance: scan with your phone, make the scan sculptable, give a head its facial shapes and
+drive them with your own face.
+
 ### Make sculptable (splat capture -> sculptable, animation-ready mesh)
 - Splats palette > **From scan > Make sculptable**: one click turns the capture into a new SubTool next to the
   splats (which are hidden, not deleted): a watertight, manifold surface (opacity-weighted Gaussian density on a
@@ -772,7 +777,8 @@ First public release.
 - Rez package (`packaging/rez`).
 - Headless thumbnail/turntable rendering and scripted demo recording.
 
-[Unreleased]: https://github.com/islandmed/SculptForge/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/islandmed/SculptForge/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/islandmed/SculptForge/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/islandmed/SculptForge/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/islandmed/SculptForge/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/islandmed/SculptForge/compare/v0.6.0...v0.7.0
