@@ -1,0 +1,107 @@
+# Facial shapes (Tool > Facial Shapes): Generate Facial Shapes on the template head and on a real marble bust (Poly
+# Haven, CC0), the Face test presets and sliders, landmarks clicked on the canvas, Ctrl help, a take that plays and
+# bakes, and face_weights from the console (the phone link's command).
+run new_head
+expect_value layers == 0
+camera 0 0
+key f
+wait 0.5
+look 0 0.02 0.08
+zoom 1.6
+click "Facial Shapes##tool.face"
+expect_text "Generate the shapes first"
+hold ctrl
+hover "Facial Shapes/Generate Facial Shapes"
+expect_help "52 Apple ARKit blend shapes"
+hold none
+click "Facial Shapes/Generate Facial Shapes"
+expect_status "Generated 52 facial shapes on Head"
+expect_status "Left/Right mirrored"
+expect_status "Eyes: eye rotations"
+expect_value layers == 52
+expect_value face_jawOpen == 0
+shot head-neutral
+click "Facial Shapes/Smile"
+expect_value face_mouthSmileLeft == 0.8
+shot head-smile
+click "Facial Shapes/Surprise"
+expect_value face_mouthSmileLeft == 0
+expect_value face_jawOpen == 0.45
+shot head-surprise
+click "Facial Shapes/Blink"
+shot head-blink
+click "Facial Shapes/Kiss"
+shot head-kiss
+click "Facial Shapes/Look left"
+shot head-look-left
+click "Facial Shapes/Neutral"
+expect_value face_eyeLookOutLeft == 0
+# A slider per shape, by region.
+click "Facial Shapes/Jaw"
+drag_item "Facial Shapes/##jawOpen" 400 0
+expect_value face_jawOpen == 1
+shot head-jaw-slider
+drag_item "Facial Shapes/##jawOpen" -400 0
+expect_value face_jawOpen == 0
+# The phone link's command, from the console: no undo step.
+run face_weights json={"mouthSmileLeft":1,"eyeBlinkRight":1}
+expect_value face_mouthSmileLeft == 1
+expect_value face_eyeBlinkRight == 1
+shot head-wink-console
+run face_preset name=Neutral
+
+# A take recorded by the phone link plays, and bakes for export.
+run face_take_play path=$SCRIPT_DIR/data/face/take.json
+expect_status "Playing take 'take'"
+expect_value face_take_playing == 1
+wait 0.75
+expect_value face_jawOpen > 0.3
+shot head-take
+run face_take_stop
+click "Facial Shapes/Bake Take"
+expect_status "Baked take 'take'"
+expect_text "Baked: take"
+run export_glb path=sf_ui_face.glb
+expect_status "with the take 'take'"
+click "Facial Shapes/Clear Baked Take"
+expect_no_text "Baked: take"
+
+# A real head: the marble bust (different topology, a little turned, closed mouth, blank eyes).
+run open path=$SCRIPT_DIR/../data/marble-bust.glb
+expect_value layers == 0
+camera 0 0
+key f
+wait 0.5
+look -0.03 0.36 0.1
+zoom 2.5
+click "Facial Shapes/Auto Landmarks"
+expect_status "Landmarks found"
+expect_value face_landmarks == 8
+shot bust-landmarks
+# Place one by hand: the canvas asks for each in turn.
+click "Facial Shapes/Clear"
+expect_value face_landmarks == 0
+click "Facial Shapes/Place Landmarks"
+expect_value face_placing == 1
+expect_status "Click the Right eye, outer corner"
+stroke 0.32 0.42 0.32 0.42 0.05
+expect_value face_landmarks == 1
+expect_status "1/8 placed. Click the Right eye, inner corner"
+shot bust-placing
+click "Facial Shapes/Place Landmarks"
+expect_value face_placing == 0
+click "Facial Shapes/Clear"
+click "Facial Shapes/Generate Facial Shapes"
+expect_status "Generated 52 facial shapes on marble-bust"
+expect_value layers == 52
+shot bust-neutral
+click "Facial Shapes/Grin"
+shot bust-grin
+click "Facial Shapes/Anger"
+shot bust-anger
+click "Facial Shapes/Blink"
+shot bust-blink
+click "Facial Shapes/Aah"
+shot bust-aah
+key ctrl+z
+expect_value layers == 0

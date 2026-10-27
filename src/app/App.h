@@ -19,6 +19,7 @@
 #include "core/Commands.h"
 #include "core/Image.h"
 #include "core/Document.h"
+#include "core/Face.h"
 #include "core/MeshTransform.h"
 #include "core/AutoUv.h"
 #include "core/QRemesh.h"
@@ -369,6 +370,28 @@ private:
     void registerVdmActions();
     void pollVdm(); // every frame: file dialog results, and the stroke follows the brush
     void afterVdmCommand(const std::string& name, const CommandResult& r);
+    // Facial shapes (PanelFace.cpp, core/Face.h): Tool > Facial Shapes (Generate, landmarks clicked on the canvas,
+    // the Face test, takes played with the frame clock).
+    void drawFaceContents();
+    void registerFaceUiActions();
+    void generateFaceShapesUi();
+    bool hasFaceShapes() const;
+    bool faceMouseDown(float x, float y, SDL_Keymod mod);
+    void drawFaceOverlay();
+    void animateFaceTake(float dt); // every frame (from animateLayers): file dialog results, take playback
+    static void SDLCALL onFaceTakeChosen(void* userdata, const char* const* files, int filter);
+    FaceLandmarks faceLandmarks_;
+    bool facePlacing_ = false;
+    int facePlaceIndex_ = 0;
+    int faceSymmetry_ = 0; // 0 Auto, 1 On, 2 Off
+    bool faceSubtools_ = true;
+    float facePresetAmount_ = 1.0f;
+    MorphAnimation faceTake_;
+    std::string faceTakePath_;
+    bool faceTakePlaying_ = false, faceTakeLoop_ = true;
+    float faceTakeTime_ = 0.0f;
+    std::mutex faceTakeMutex_;
+    std::string pendingFaceTake_; // set by the file dialog thread
     static void SDLCALL onVdmChosen(void* userdata, const char* const* files, int filter);
     static void SDLCALL onVdmExportChosen(void* userdata, const char* const* files, int filter);
     friend void drawVdmGrid(App&, GridMode);

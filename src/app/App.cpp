@@ -689,6 +689,7 @@ void App::onMouseDown(float x, float y, Uint8 button) {
         if (maskSelectMouseDown(x, y, mod)) return;
         if (gizmoMouseDown(x, y, mod)) return; // Gizmo 3D handles, pivot clicks (Gizmo.cpp)
         if (guideMouseDown(x, y, mod)) return; // the QRemesh Guides brush (PanelRetopo.cpp)
+        if (faceMouseDown(x, y, mod)) return;  // placing facial landmarks (PanelFace.cpp)
         // Alt+click on another SubTool selects it (ZBrush); Alt+drag stays an inverted stroke or a pan.
         // Shift+Alt+click selects and frames it (ZBrush), the active one too.
         const bool frameClick = (mod & SDL_KMOD_ALT) && (mod & SDL_KMOD_SHIFT) && !ctrlDown(mod);
@@ -1058,14 +1059,15 @@ void App::runCommand(const std::string& name, const Args& args) {
     if (r.ok && name != "export_glb" && name != "export_lods" && name != "export_usd" && name != "export_fbx" &&
         name != "export_unreal" && name.rfind("unreal_", 0) != 0 && name != "save_obj" && name != "save_project" &&
         name != "mesh_info" && name.rfind("brush_", 0) != 0 && name.rfind("splat_", 0) != 0 && name != "mesh_to_splats" &&
-        name != "set_color" && name != "set_material" && name != "export_ply") {
+        name != "set_color" && name != "set_material" && name != "export_ply" && name != "face_weights" &&
+        name != "face_preset" && name.rfind("face_take", 0) != 0 && name != "face_landmarks_detect") {
         clearLods();
         playingLayer_ = -1;
     }
     if (r.ok && name == "save_obj" && !doc_.mesh.layers.empty())
         status_ += " (OBJ stores the current blend; export GLB to keep layers as blend shapes)";
     if (!r.ok) SDL_Log("%s failed: %s", name.c_str(), r.message.c_str());
-    if (r.ok && (name == "new_sphere" || name == "new_plane" || name == "open_obj" || name == "open" ||
+    if (r.ok && (name == "new_sphere" || name == "new_plane" || name == "new_head" || name == "open_obj" || name == "open" ||
                  name == "image_relief" || name == "image_inflate" || name == "splat_to_mesh" ||
                  (name == "splat_transform" && args.contains("fit"))))
         camera_.frame(sceneBounds());
@@ -1076,7 +1078,8 @@ void App::runCommand(const std::string& name, const Args& args) {
     afterVdmCommand(name, r); // the VDM brush after vdm_set / vdm_capture, the top view after vdm_new_plane
     watchActiveBrush();
     updateTitle();
-    consoleEcho(name, args, r); // the console shows every command as a script line
+    // The console shows every command as a script line (but not a live face feed, 30 times a second).
+    if (name != "face_weights" || !r.ok) consoleEcho(name, args, r);
 }
 
 namespace {
@@ -1245,6 +1248,7 @@ void App::setLayerWeight(int index, float weight) {
 }
 
 void App::animateLayers(float dt) {
+    animateFaceTake(dt); // (PanelFace.cpp)
     if (playingLayer_ < 0 || playingLayer_ >= int(doc_.mesh.layers.size())) {
         playingLayer_ = -1;
         return;
@@ -1306,6 +1310,7 @@ void App::drawUi() {
     const ImVec2 mouse(mouseX_, mouseY_);
     drawGizmo(); // Gizmo 3D handles and panel (Gizmo.cpp)
     drawQRemeshGuides(); // QRemesh Guides curves (PanelRetopo.cpp)
+    drawFaceOverlay();   // facial landmarks (PanelFace.cpp)
     // In Gizmo mode (and with the QRemesh Guides brush) the brush ring shows only while Ctrl masks or Shift smooths.
     const bool ringOff = gizmoActive() || (guidesMode_ && !(inputMods() & SDL_KMOD_SHIFT));
     if (((!ImGui::GetIO().WantCaptureMouse && canvasRect().contains(mouse.x, mouse.y)) || drag_ == Drag::Stroke) &&

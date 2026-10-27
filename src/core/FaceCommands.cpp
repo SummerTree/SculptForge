@@ -3,7 +3,9 @@
 #include "core/Commands.h"
 #include "core/Face.h"
 #include "core/Multires.h"
+#include "core/Primitives.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 
@@ -28,8 +30,65 @@ std::string presetNames() {
 
 } // namespace
 
+Mesh faceTemplateHeadMesh(Mesh* eyes) {
+    const FaceTemplate& t = faceTemplate();
+    Mesh m;
+    for (const auto& p : t.neutral) m.positions.push_back(p * 0.01f); // centimetres -> metres
+    m.triangles = t.triangles;
+    // The template's quads were split (a, b, c) + (a, c, d), one after the other: pair them again.
+    for (uint32_t i = 0; i + 1 < m.triangles.size(); ++i) {
+        const glm::uvec3 a = m.triangles[i], b = m.triangles[i + 1];
+        if (a.x == b.x && a.z == b.y) {
+            m.pairQuad(i, i + 1);
+            ++i;
+        }
+    }
+    // Polygroups: skin, mouth, eye sockets.
+    m.ensurePolygroups();
+    for (uint32_t i = 0; i < m.triangles.size(); ++i) {
+        const uint32_t v = std::min({m.triangles[i].x, m.triangles[i].y, m.triangles[i].z});
+        m.polygroups[i] = v < t.skinEnd ? 0u : v < t.mouthEnd ? 1u : 2u;
+    }
+    m.rebuildTopology();
+    m.recomputeAllNormals();
+    if (eyes) {
+        // An eyeball in each socket: centred on the socket's opening, its radius the socket's.
+        *eyes = Mesh();
+        for (int side = 0; side < 2; ++side) {
+            glm::vec3 lo(1e9f), hi(-1e9f);
+            for (uint32_t v = t.mouthEnd; v < t.neutral.size(); ++v)
+                if ((t.neutral[v].x > 0.0f) == (side == 1)) {
+                    lo = glm::min(lo, t.neutral[v]);
+                    hi = glm::max(hi, t.neutral[v]);
+                }
+            const float r = 0.5f * std::max(hi.x - lo.x, hi.y - lo.y);
+            const glm::vec3 c(0.5f * (lo.x + hi.x), 0.5f * (lo.y + hi.y), hi.z - r);
+            Mesh ball = makeIcosphere(4, r * 0.01f);
+            const uint32_t first = uint32_t(eyes->positions.size());
+            for (const auto& p : ball.positions) eyes->positions.push_back(p + c * 0.01f);
+            for (const auto& tri : ball.triangles) eyes->triangles.push_back(tri + glm::uvec3(first));
+        }
+        eyes->rebuildTopology();
+        eyes->recomputeAllNormals();
+    }
+    return m;
+}
+
 void registerFaceCommands(CommandRegistry& registry) {
     using T = ParamSpec::Type;
+    registry.add({"new_head",
+                  "New scene with a human head to sculpt a face on (the ICT-FaceKit template head, MIT licence: face, "
+                  "neck, mouth and eye sockets, about 14,000 vertices, life size in metres) and its eyes as a second "
+                  "SubTool. Generate Facial Shapes fits it exactly.",
+                  {},
+                  [](Document& doc, const Args&) -> CommandResult {
+                      Mesh eyes;
+                      Mesh head = faceTemplateHeadMesh(&eyes);
+                      doc.setMesh(std::move(head), "Head");
+                      doc.addSubtool(std::move(eyes), "Eyes", false);
+                      doc.path.clear();
+                      return {true, "New head (" + std::to_string(doc.mesh.vertexCount()) + " vertices) with Eyes"};
+                  }});
     registry.add({"face_shapes_generate",
                   "Generate Facial Shapes: gives the active SubTool (a sculpted humanoid head looking down +Z, Y up) "
                   "the 52 Apple ARKit blend shapes (eyeBlinkLeft, jawOpen, mouthSmileRight, ...) as sculpt layers at "
