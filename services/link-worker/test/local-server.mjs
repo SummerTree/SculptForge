@@ -6,7 +6,7 @@ import worker from "../src/index.js";
 import { fakeEnv } from "./fake-env.mjs";
 
 const port = Number(process.argv[2] ?? 8787);
-const env = fakeEnv(process.env.ALLOWED_ORIGINS ?? "https://sculptforge.app,https://islandmed.github.io,http://localhost:8000");
+const env = fakeEnv(process.env.ALLOWED_ORIGINS ?? "https://sculptforge.app,http://localhost:8000");
 setInterval(() => env.fireAlarms(), 10_000).unref();
 
 http.createServer(async (req, res) => {

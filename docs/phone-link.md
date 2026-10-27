@@ -35,8 +35,8 @@ Phone browsers give `getUserMedia` (live camera) only to secure contexts: HTTPS 
 1. **Capture and AR: an HTTP page served by the desktop** (`assets/phone/capture.html`, embedded in the app), LAN
    only, while the window is open. File inputs record video and photos; uploads are chunked and resumable; AR
    models are plain links (`<a rel="ar">` for AR Quick Look, an intent URL for Scene Viewer), which work over HTTP.
-2. **Live face: an HTTPS page on our website** (`website/link/index.html`, published by GitHub Pages; base URL in
-   `kPhoneLinkSiteUrl`, overridable with `SCULPTFORGE_LINK_URL`) running MediaPipe Face Landmarker on the phone,
+2. **Live face: an HTTPS page on our website** (`website/link/index.html`, published by GitHub Pages at
+   `https://sculptforge.app/link/`; base URL in `kPhoneLinkSiteUrl`, overridable with `SCULPTFORGE_LINK_URL`) running MediaPipe Face Landmarker on the phone,
    connected to the desktop by a **WebRTC data channel** (DTLS: WebRTC is allowed from HTTPS pages to LAN peers).
    Signaling needs no server of ours:
    - **desktop -> phone**: the capture page asks the desktop for a face link; the desktop creates the WebRTC offer

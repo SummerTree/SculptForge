@@ -14,7 +14,7 @@ class MemoryStorage {
     async setAlarm(at) { this.alarmAt = at; }
 }
 
-export function fakeEnv(allowedOrigins = "https://sculptforge.app,https://islandmed.github.io") {
+export function fakeEnv(allowedOrigins = "https://sculptforge.app") {
     const objects = new Map();
     const env = { ALLOWED_ORIGINS: allowedOrigins };
     env.TOPICS = {

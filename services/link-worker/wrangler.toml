@@ -13,7 +13,7 @@ routes = [
 
 [vars]
 # Pages allowed to post from a browser (the face page). Requests without an Origin (the desktop) are always allowed.
-ALLOWED_ORIGINS = "https://sculptforge.app,https://www.sculptforge.app,https://islandmed.github.io"
+ALLOWED_ORIGINS = "https://sculptforge.app,https://www.sculptforge.app"
 
 [[durable_objects.bindings]]
 name = "TOPICS"

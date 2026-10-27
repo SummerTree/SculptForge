@@ -37,7 +37,7 @@ class FaceRtc;
 
 // Where the face page lives (HTTPS, needed for the camera): our website. One constant; SCULPTFORGE_LINK_URL
 // overrides it (e.g. a local HTTPS test server).
-inline constexpr const char* kPhoneLinkSiteUrl = "https://islandmed.github.io/SculptForge/link/";
+inline constexpr const char* kPhoneLinkSiteUrl = "https://sculptforge.app/link/";
 // The relays that carry the phone's (encrypted) WebRTC answer, since the HTTPS page can't reach the desktop yet:
 // space-separated, tried in order. Ours first (services/link-worker, a Cloudflare Worker), ntfy.sh as the
 // fallback (same protocol). SCULPTFORGE_LINK_RELAY overrides the list.
