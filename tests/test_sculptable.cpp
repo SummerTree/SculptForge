@@ -321,15 +321,15 @@ TEST(sculptable_command_head) {
     CHECK(r.message.find("face guides") != std::string::npos);
     // Skin-coloured where the cheek is, dark where the iris is.
     const glm::vec3 skin = srgbToLinear(glm::vec3(0.85f, 0.64f, 0.52f));
-    size_t near = 0, good = 0;
+    size_t cheek = 0, good = 0;
     for (size_t v = 0; v < d.mesh.vertexCount(); ++v) {
         const glm::vec3 p = d.mesh.positions[v];
         if (glm::length(glm::vec2(p.x - 0.45f, p.y + 0.15f)) < 0.06f && p.z > 0.3f) {
-            ++near;
+            ++cheek;
             good += glm::length(d.mesh.colors[v] - skin) < 0.08f;
         }
     }
-    CHECK(near > 0 && good * 10 >= near * 9);
+    CHECK(cheek > 0 && good * 10 >= cheek * 9);
 }
 
 TEST(sculptable_stages_and_landmarks) {
@@ -389,13 +389,13 @@ TEST(sculptable_texture_and_levels) {
     BVH bvh;
     bvh.build(scan);
     std::vector<uint32_t> found;
-    size_t far = 0;
+    size_t away = 0;
     const float voxel = 2.4f / 96.0f;
     for (size_t v = 0; v < d.mesh.vertexCount(); v += 13) {
         bvh.queryVertices(scan, d.mesh.positions[v], 2.0f * voxel, found);
-        far += found.empty();
+        away += found.empty();
     }
-    CHECK(far * 100 < d.mesh.vertexCount() / 13);
+    CHECK(away * 100 < d.mesh.vertexCount() / 13);
 }
 
 TEST(sculptable_deterministic) {
