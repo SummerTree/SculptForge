@@ -52,6 +52,7 @@ add_library(sculptforge_core STATIC
   src/core/Image.cpp
   src/core/ImageTo3D.cpp
   src/core/Splats.cpp
+  src/core/Sculptable.cpp
   src/core/Voxel.cpp
   src/core/EnginePresets.cpp
   src/core/Masking.cpp
